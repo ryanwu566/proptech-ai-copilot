@@ -129,7 +129,7 @@ test("satellite endpoint is not called before terrain returns an accepted coordi
   await page.waitForTimeout(100);
 
   expect(satelliteCalls).toBe(0);
-  await expect(card).toContainText("Satellite reference imagery — not cadastral or statutory evidence.");
+  await expect(card).toContainText("Imagery reference — not cadastral or statutory evidence.");
 });
 
 for (const status of ["available", "limited", "unavailable"] as const) {

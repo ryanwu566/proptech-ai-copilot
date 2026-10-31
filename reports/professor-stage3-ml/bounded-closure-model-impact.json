@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "model_retained": true,
+  "model_retrained": false,
+  "holdout_rescored": false,
+  "artifact_regenerated": false,
+  "model_version": "plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7",
+  "model_sha256": "dcc6587c76b332e8f5ac800f8585972a723998edd4a84430fca5521f8d3fc95e",
+  "manifest_sha256": "54eba6a04069b0f8d569c2fe62bbe1ca70771b5594cb220e908e9f7e3524fac4",
+  "all_artifact_file_hashes_unchanged": true,
+  "all_fitting_source_hashes_unchanged": true,
+  "admitted_identities_and_splits_unchanged": true,
+  "feature_contract_version": "plvr-gross-transfer-features-v1",
+  "feature_contract_sha256": "5531a9e2cf1a1c9adc04cca8c415172d878de6e0b83efea7a488ac5688696858",
+  "scope_policy_sha256": "93934a302f70b37a1a20d36ee92ad449fd30f47e1b7b676c4f53caa47dbe375c",
+  "audit_script_sha256": "d6625d996fb53b203522f01e938a13f7c591b7ccefc2d371660ef4a0274b65e4",
+  "audit_report_sha256": "31fa457185ed1cf7cf4017e4c22e3993ca0607558a7844cef921bcc4a9af41e5",
+  "frontend_sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
+  "decision": "Retain existing native model and artifact. API envelope only restricts requested claims; fitted inputs and original evaluation are unchanged.",
+  "api_scope_envelope_sha256": "af47a7ed7f254f8c67d33a68f72cc51834364ad66d6760c4a3be152e9092f79f"
+}

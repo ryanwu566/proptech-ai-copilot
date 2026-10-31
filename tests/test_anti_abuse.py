@@ -475,6 +475,7 @@ def test_satellite_kill_switch_prevents_worker_startup(monkeypatch):
             pass
     monkeypatch.setattr(api_main, "_get_earth_engine_worker_manager", lambda: Manager())
     monkeypatch.setenv("EARTH_ENGINE_SATELLITE_REFERENCE_V1", "true")
+    monkeypatch.setenv("SATELLITE_REFERENCE_PROVIDER", "earth_engine")
     monkeypatch.setenv("ANTI_ABUSE_SATELLITE_DISABLED", "true")
     async def lifespan():
         async with api_main.app_lifespan(api_main.app):

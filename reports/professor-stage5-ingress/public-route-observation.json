@@ -1,0 +1,723 @@
+{
+  "schema": "professor-stage5-public-route-observation-v1",
+  "checked_at": "2026-10-30T07:56:04.047736+00:00",
+  "values_included": false,
+  "scope": "unauthenticated GET of public health and OpenAPI route metadata; not credential/control-plane/caller proof",
+  "services": {
+    "cloud_run": {
+      "referenced_origin": "https://proptech-earth-engine-api-712372598609.asia-east1.run.app",
+      "observations": [
+        {
+          "path": "/health",
+          "method": "GET",
+          "status": 200,
+          "response_sha256": "9a1c3af8d4e65fda520eb9796bb64e8fecf86b771c887fefae401e0465f201c3",
+          "result": "HTTP_RESPONSE_OBSERVED_NO_BODY_EXPORTED"
+        },
+        {
+          "path": "/readiness",
+          "method": "GET",
+          "status": 200,
+          "response_sha256": "229710fec18cf4f5a331300d0d7596838387e2c43eab2de21990664b64b90373",
+          "result": "HTTP_RESPONSE_OBSERVED_NO_BODY_EXPORTED"
+        },
+        {
+          "path": "/openapi.json",
+          "method": "GET",
+          "status": 200,
+          "response_sha256": "e508ce40c4e14bd05d06b8b04c9ed92174d66f97ed6f8ae251c9339f7d32ae02",
+          "routes": [
+            {
+              "path": "/aegis-credit/analyze",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/bank-rates/institutions",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/bank-rates/mortgage",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/client-errors",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/commute/address-lookup",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/commute/nearest",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/commute/refresh",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/commute/route",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/commute/status",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/compatibility",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/demo-cases",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/demographics/villages/{district_code}",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/demographics/villages/{district_code}/history",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/demographics/villages/{district_code}/latest",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/health",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/holding-cost/calculate",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/lexprop/query",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/liveness",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/loan/calculate",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/location/insight",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/location/resolve",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/map/google-health",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/map/insight",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/map/nearby",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/map/poi-categories",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/map/regions",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/map/search",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/market-insights",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/market-insights/catalog",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/market-insights/comparables",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/market-insights/coverage/audit",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/market-insights/coverage/bootstrap",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/market-insights/coverage/reconcile",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/market-insights/methodology",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/market-insights/query",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/market-insights/refresh",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/market-insights/regions",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/market-insights/releases",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/market-insights/segment-comparables",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/market-insights/segments",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/market-insights/status",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/mortgage-rates/latest",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/parcel-geometry/consistency",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/parcel-geometry/spatial-analyze",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/parcel-geometry/status",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/parcel-geometry/upload",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/performance/metrics",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/access",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/admin/campaigns",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/admin/campaigns/{campaign_id}/disable",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/admin/evidence/export",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/pilot/admin/evidence/{session_id}/approve-publication",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/admin/evidence/{session_id}/review",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/admin/evidence/{session_id}/revoke-publication",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/admin/session",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/modes",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/pilot/public-evidence",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/pilot/readiness",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/pilot/reviewer/session",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/session/logout",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/sessions/{session_id}",
+              "methods": [
+                "DELETE"
+              ]
+            },
+            {
+              "path": "/pilot/sessions/{session_id}/complete",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/sessions/{session_id}/consent",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/sessions/{session_id}/deletion-dry-run",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/sessions/{session_id}/events",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/sessions/{session_id}/export",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/pilot/sessions/{session_id}/feedback",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/sessions/{session_id}/profile",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/pilot/source-status",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/professional-review",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/professional-review/status",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/readiness",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/release-version",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/roads/cities",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/roads/districts",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/roads/roads",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/source-status",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/taxoracle/analyze",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/taxoracle/report",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/taxoracle/sources",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/terrain-risk/analyze",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/terrain-risk/sources",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/terrain/satellite-reference",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/v1/cases",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/cases/import-legacy",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/cases/{case_id}/attach-resolution",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/cases/{case_id}/parcel-set",
+              "methods": [
+                "GET",
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/cases/{case_id}/parcel-set/active-member",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/cases/{case_id}/parcel-set/members",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/cases/{case_id}/parcel-set/members/{member_id}/review",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/cases/{case_id}/parcel-set/reorder",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/cases/{case_id}/parcel-set/review",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/parcel-building-relations",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/planning/taipei/observe",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/properties/{property_entity_id}",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/v1/properties/{property_entity_id}/building-hypotheses",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/properties/{property_entity_id}/evidence",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/v1/properties/{property_entity_id}/graph",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/v1/properties/{property_entity_id}/parcel-hypotheses",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/property-resolutions",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/property-resolutions/{identity_resolution_id}",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/v1/property-resolutions/{identity_resolution_id}/confirm",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/property-resolutions/{identity_resolution_id}/reject",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/v1/workspaces/{workspace_id}/context",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/valuation/data-status",
+              "methods": [
+                "GET"
+              ]
+            },
+            {
+              "path": "/valuation/estimate",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/valuation/property-search",
+              "methods": [
+                "POST"
+              ]
+            },
+            {
+              "path": "/valuation/trend",
+              "methods": [
+                "POST"
+              ]
+            }
+          ],
+          "route_count": 109,
+          "result": "PASS_ROUTE_NAMES_ONLY"
+        }
+      ],
+      "deployed_service_list_complete": false,
+      "credentials_proven": false,
+      "callers_proven": false
+    },
+    "render": {
+      "referenced_origin": "https://proptech-ai-copilot-api.onrender.com",
+      "observations": [
+        {
+          "path": "/health",
+          "method": "GET",
+          "result": "UNAVAILABLE",
+          "error_class": "TimeoutError"
+        },
+        {
+          "path": "/readiness",
+          "method": "GET",
+          "result": "UNAVAILABLE",
+          "error_class": "TimeoutError"
+        },
+        {
+          "path": "/openapi.json",
+          "method": "GET",
+          "result": "UNAVAILABLE",
+          "error_class": "TimeoutError"
+        }
+      ],
+      "deployed_service_list_complete": false,
+      "credentials_proven": false,
+      "callers_proven": false
+    }
+  },
+  "mutations_performed": false,
+  "paid_provider_calls": 0
+}

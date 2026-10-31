@@ -1,0 +1,11 @@
+{
+  "health": 200,
+  "readiness": 200,
+  "required_listeners": [
+    "127.0.0.1:8080"
+  ],
+  "postgres_5432_host_listener_absent": true,
+  "api_8080_loopback_only": true,
+  "secret_values_read": false,
+  "active_runtime_modified": false
+}

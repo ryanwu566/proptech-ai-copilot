@@ -1,0 +1,146 @@
+{
+  "schema": "professor-provider-refusal-diagnosis-v1",
+  "checked_at": "2026-10-30T10:14:24.492587+00:00",
+  "base_head": "62e08099983b0a53d28c2d65e2bb68a9d533fd41",
+  "receipt_origin": "/var/backups/proptech-selfhost/stage5-provider-credentials/20261030T095449Z-yv3c0jtm/acceptance.json",
+  "sanitized_receipt_sha256": "acd619123785ec697da8b016e2348f4680bfaa572a74553e95aa408cb9253e68",
+  "observed_reason_code": "provider_guard_unavailable",
+  "observed_failure_stage": "Docker public-configuration preflight, before collection or writes",
+  "failure_class": "verifier defect / installer precondition incompatibility reproduced",
+  "compatibility_root_cause": "Verifier required redundant SUPABASE_URL although accepted Stage4A explicitly configures canonical SUPABASE_JWT_ISSUER and SUPABASE_JWT_AUDIENCE without that alias.",
+  "historical_precision": "Original generic receipt does not identify which guard failed; the missing-alias compatibility defect is reproduced against the accepted profile, rather than uniquely proved by the old reason code alone.",
+  "reproduction": "accepted issuer-only profile failed old code with identical provider_guard_unavailable; new code passes, matching alias passes, conflicting alias or absent mandatory issuer/audience/paid guard refuses",
+  "source_evidence": [
+    "infra/selfhost/professor-userdb.override.yml",
+    "scripts/ops/professor_stage4a_activation.py ENV_DELTA and identity_authority_conflict check",
+    "services/vnext/auth.py _issuer_from_environment"
+  ],
+  "repair": "Allow only absent legacy SUPABASE_URL; preserve exact explicit issuer/audience and every disabled-provider guard. Present conflicting alias still refuses. Future missing mandatory field names are captured without values.",
+  "credential_collection_started": false,
+  "provider_credentials_written_or_staged": false,
+  "existing_api_recreated": false,
+  "paid_provider_calls": 0,
+  "prior_host_changes_scope": "sanitized evidence/empty Docker-client directory and lock only; no provider/core credential mutation",
+  "rollback_required": false,
+  "providers": {
+    "Google Maps": {
+      "destination_status": "ABSENT_AT_FAILED_ATTEMPT",
+      "source_values_discovered": false,
+      "source_availability": "UNKNOWN",
+      "safe_input_workflow": "HIDDEN_TTY_OR_PROTECTED_SINGLE_VALUE_FILE",
+      "workflow_ready": true,
+      "automatic_source_adoption_ready": false,
+      "functional_test": "NOT_RUN"
+    },
+    "Google Places": {
+      "destination_status": "ABSENT_AT_FAILED_ATTEMPT",
+      "source_values_discovered": false,
+      "source_availability": "UNKNOWN",
+      "safe_input_workflow": "HIDDEN_TTY_OR_PROTECTED_SINGLE_VALUE_FILE",
+      "workflow_ready": true,
+      "automatic_source_adoption_ready": false,
+      "functional_test": "NOT_RUN"
+    },
+    "Google Routes": {
+      "destination_status": "ABSENT_AT_FAILED_ATTEMPT",
+      "source_values_discovered": false,
+      "source_availability": "UNKNOWN",
+      "safe_input_workflow": "HIDDEN_TTY_OR_PROTECTED_SINGLE_VALUE_FILE",
+      "workflow_ready": true,
+      "automatic_source_adoption_ready": false,
+      "functional_test": "NOT_RUN"
+    },
+    "Earth Engine": {
+      "destination_status": "ABSENT_AT_FAILED_ATTEMPT",
+      "source_values_discovered": false,
+      "source_availability": "UNKNOWN",
+      "safe_input_workflow": "PROTECTED_APPROVED_SERVICE_ACCOUNT_FILE",
+      "workflow_ready": true,
+      "automatic_source_adoption_ready": false,
+      "functional_test": "NOT_RUN"
+    },
+    "TGOS": {
+      "destination_status": "ABSENT_AT_FAILED_ATTEMPT",
+      "source_values_discovered": false,
+      "source_availability": "UNKNOWN",
+      "safe_input_workflow": "HIDDEN_TTY_OR_PROTECTED_SINGLE_VALUE_FILE",
+      "workflow_ready": true,
+      "automatic_source_adoption_ready": false,
+      "functional_test": "NOT_RUN"
+    },
+    "TDX": {
+      "destination_status": "ABSENT_AT_FAILED_ATTEMPT",
+      "source_values_discovered": false,
+      "source_availability": "UNKNOWN",
+      "safe_input_workflow": "HIDDEN_TTY_OR_PROTECTED_SINGLE_VALUE_FILE",
+      "workflow_ready": true,
+      "automatic_source_adoption_ready": false,
+      "functional_test": "NOT_RUN"
+    },
+    "R2": {
+      "destination_status": "ABSENT_AT_FAILED_ATTEMPT",
+      "source_values_discovered": false,
+      "source_availability": "UNKNOWN",
+      "safe_input_workflow": "HIDDEN_TTY_OR_PROTECTED_SINGLE_VALUE_FILE",
+      "workflow_ready": true,
+      "automatic_source_adoption_ready": false,
+      "functional_test": "NOT_RUN"
+    },
+    "OpenAI": {
+      "destination_status": "ABSENT_AT_FAILED_ATTEMPT",
+      "source_values_discovered": false,
+      "source_availability": "UNKNOWN",
+      "safe_input_workflow": "HIDDEN_TTY_OR_PROTECTED_SINGLE_VALUE_FILE",
+      "workflow_ready": true,
+      "automatic_source_adoption_ready": false,
+      "functional_test": "NOT_RUN"
+    }
+  },
+  "supabase_verification": {
+    "status": "ALREADY_PRESENT",
+    "authority_changed": false,
+    "private_signing_or_service_role_key_required": false
+  },
+  "operator_input_required": true,
+  "source_credentials_received_by_agent": false,
+  "migration_rerun": false,
+  "operator_workflow_retry_ready": true,
+  "retry_condition": "operator privately supplies actual approved backend credentials and a protected approved Earth Engine JSON file; existing input/import validation and fail-closed preflight remain mandatory",
+  "operator_command": "sudo python3 -B /home/andy/.codex/worktrees/7d59/proptech-ai-copilot/scripts/ops/professor_provider_credentials.py --migrate-all",
+  "provider_source_readiness_note": "Workflow-ready does not mean source credentials were located, authenticated or automatically adopted; input supply is an operator action, not a request for keys in Codex.",
+  "tests_and_review": {
+    "schema": "professor-provider-guard-repair-validation-v1",
+    "status": "PASS",
+    "focused_tests": {
+      "tests": 64,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "red_green": "accepted issuer-only profile reproduced original provider_guard_unavailable before repair; all six profile cases pass after repair",
+    "python_ast": "PASS",
+    "migration_retried": false,
+    "provider_calls": 0,
+    "real_secret_values_read": false,
+    "independent_review": {
+      "status": "PASS_PREPARATION_ONLY",
+      "reviewer": "stage5_security_review",
+      "remaining_critical_findings": 0,
+      "remaining_important_findings": 0,
+      "scope": "optional legacy alias compatibility only; exact issuer/audience, conflicting alias and mandatory disable guards remain fail-closed",
+      "historical_cause_precision": "generic original receipt does not identify the field; accepted-profile compatibility failure reproduced",
+      "actual_provider_sources_discovered": false,
+      "operator_retry_workflow_appropriate_with_private_inputs": true,
+      "tests_or_privileged_operations_run_by_reviewer": false
+    },
+    "source_sha256": "ef4b6541d7f89e7e166b6d307703550310b4bc2739aeca2fbf6028c141b8932d"
+  },
+  "safety": {
+    "sudo_executed_by_agent": false,
+    "secret_values_read_or_returned": false,
+    "migration_rerun": false,
+    "provider_activated": false,
+    "runtime_database_network_cloud_frontend_changes": false,
+    "push_performed": false
+  }
+}

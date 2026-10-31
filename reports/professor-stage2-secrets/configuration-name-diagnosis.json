@@ -1,0 +1,133 @@
+{
+  "schema": "professor-stage2-configuration-name-diagnosis-v1",
+  "recorded_at": "2026-10-29T09:37:09.493828+00:00",
+  "repair_status": "PASS",
+  "operator_attempt": {
+    "status": "REFUSED",
+    "reason_code": "configuration_name_unsupported",
+    "exit_code": 1,
+    "confirmation_reached": false,
+    "container_recreation": false,
+    "rollback_needed": false
+  },
+  "failure_path": [
+    "Activation.preflight",
+    "validate_host",
+    "configuration_check(runtime.env)",
+    "validate_nonsecret_env"
+  ],
+  "first_rejected_identifier": "ANTI_ABUSE_ENFORCEMENT_MODE",
+  "second_rejected_identifier": "TAIPEI_PLANNING_SOURCE_MODE",
+  "cause": "Existing nonsecret settings already inventoried and consumed by application were absent from the hosted-manifest-based allowlist.",
+  "accepted_exact_modes": {
+    "ANTI_ABUSE_ENFORCEMENT_MODE": "local_only",
+    "TAIPEI_PLANNING_SOURCE_MODE": "manual_evidence"
+  },
+  "evidence": {
+    "historical_reference": "/tmp/professor-apply-success-evidence/etc-before/runtime.env",
+    "reference_identifiers_only": true,
+    "supported_mode_comparisons": true,
+    "live_reference_size_mtime_match": true,
+    "live_protected_dotenv_opened": false,
+    "stage1_project_command": "/tmp/professor-apply-success-evidence/compose-command.json",
+    "stage1_project_container_name_prefix": "proptech-selfhost-",
+    "live_docker_socket": "DENIED; no sudo attempted",
+    "active_override_naming_metadata": [
+      {
+        "file": "/etc/proptech-selfhost/datasets.override.yml",
+        "top_level_project_name_declared": false,
+        "explicit_container_name_declared": false,
+        "assignment_values_output": false
+      },
+      {
+        "file": "/etc/proptech-selfhost/valuation.override.yml",
+        "top_level_project_name_declared": false,
+        "explicit_container_name_declared": false,
+        "assignment_values_output": false
+      },
+      {
+        "file": "/etc/proptech-selfhost/local-frontend.override.yml",
+        "top_level_project_name_declared": false,
+        "explicit_container_name_declared": false,
+        "assignment_values_output": false
+      }
+    ]
+  },
+  "project": {
+    "before": "proptech-selfhost",
+    "after": "proptech-selfhost",
+    "renamed": false,
+    "compose_project_name_environment_added": false,
+    "compose_cli": "5.6.1",
+    "v5_synthetic_merge": "PASS",
+    "postgresql_named_volume_names_unchanged": true
+  },
+  "fix_commit": "d8a93492eb900550ce490990fade7726766b18da",
+  "activation_source_pin": "d8a93492eb900550ce490990fade7726766b18da",
+  "source_integrity_guard_unchanged": true,
+  "verification": {
+    "focused_stage2_passed": 212,
+    "failed": 0,
+    "red_reproductions": 3,
+    "compose_merge_and_hash_format": "PASS",
+    "python_ast_files": 7,
+    "embedded_python_ast": 2,
+    "dockerfile_run_bash_n": "PASS",
+    "independent_review": "PASS",
+    "frontend_hash_preserved": true,
+    "full_suite_rerun": false
+  },
+  "unrelated_preflight_mismatches_unchanged": [
+    {
+      "path": "/etc/proptech-selfhost/datasets.override.yml",
+      "uid": 0,
+      "regular": true,
+      "mode": "0o644",
+      "existing_policy_requires": [
+        "0o600",
+        "0o640"
+      ],
+      "would_fail_existing_gate": true,
+      "reason_code": "configuration_permissions_unsafe",
+      "changed": false
+    },
+    {
+      "path": "/etc/proptech-selfhost/valuation.override.yml",
+      "uid": 0,
+      "regular": true,
+      "mode": "0o644",
+      "existing_policy_requires": [
+        "0o600",
+        "0o640"
+      ],
+      "would_fail_existing_gate": true,
+      "reason_code": "configuration_permissions_unsafe",
+      "changed": false
+    },
+    {
+      "path": "/etc/proptech-selfhost/local-frontend.override.yml",
+      "uid": 0,
+      "regular": true,
+      "mode": "0o644",
+      "existing_policy_requires": [
+        "0o600",
+        "0o640"
+      ],
+      "would_fail_existing_gate": true,
+      "reason_code": "configuration_permissions_unsafe",
+      "changed": false
+    }
+  ],
+  "ready_for_operator_activation_retry": false,
+  "retry_reason": "Separate existing YAML mode0644 versus runner0600/0640 requirement is outside the naming-only repair; do not rerun yet.",
+  "safety": {
+    "actual_secret_values_output": false,
+    "secret_files_opened": false,
+    "sudo_used": false,
+    "activation_executed_by_agent": false,
+    "host_permissions_modified": false,
+    "providers_enabled": false,
+    "database_recreation": false,
+    "pushed": false
+  }
+}

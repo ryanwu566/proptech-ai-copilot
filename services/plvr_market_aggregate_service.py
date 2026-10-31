@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from typing import Any, Protocol
 
+from services.plvr_serving_quality import serving_relation, serving_sql
 from services.market_data_foundation import MARKET_DATA_CAVEAT, market_unavailable_response
 from services.market_road_analysis import ROAD_MINIMUM_SAMPLE, analyze_market_road, is_valid_market_road, normalize_market_road
 from services.plvr_data_integrity import (
@@ -176,7 +177,7 @@ class PostgresMarketReadModelRepository:
             with connection.cursor() as cursor:
                 _set_read_only(cursor)
                 cursor.execute(
-                    READ_MODEL_STATUS_SQL,
+                    serving_sql(READ_MODEL_STATUS_SQL),
                     [list(canonical_region_storage_keys()), current_transaction_period(self.as_of)],
                 )
                 return dict(cursor.fetchone() or {})
@@ -186,7 +187,7 @@ class PostgresMarketReadModelRepository:
             with connection.cursor() as cursor:
                 _set_read_only(cursor)
                 cursor.execute(
-                    READ_MODEL_CATALOG_SQL,
+                    serving_sql(READ_MODEL_CATALOG_SQL),
                     [list(canonical_region_storage_keys()), current_transaction_period(self.as_of)],
                 )
                 return [dict(row) for row in cursor.fetchall()]
@@ -196,7 +197,7 @@ class PostgresMarketReadModelRepository:
             with connection.cursor() as cursor:
                 _set_read_only(cursor)
                 cursor.execute(
-                    READ_MODEL_REGIONS_SQL,
+                    serving_sql(READ_MODEL_REGIONS_SQL),
                     [
                         list(canonical_region_storage_keys()),
                         current_transaction_period(self.as_of),
@@ -217,13 +218,13 @@ class PostgresMarketReadModelRepository:
             ]
             try:
                 if clean_district and clean_period:
-                    cursor.execute(DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL, [*base_params, clean_district, clean_period])
+                    cursor.execute(serving_sql(DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL), [*base_params, clean_district, clean_period])
                 elif clean_district:
-                    cursor.execute(DIRECT_SUMMARY_DISTRICT_LATEST_SQL, [*base_params, clean_district])
+                    cursor.execute(serving_sql(DIRECT_SUMMARY_DISTRICT_LATEST_SQL), [*base_params, clean_district])
                 elif clean_period:
-                    cursor.execute(DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL, [*base_params, clean_period])
+                    cursor.execute(serving_sql(DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL), [*base_params, clean_period])
                 else:
-                    cursor.execute(DIRECT_SUMMARY_COUNTY_LATEST_SQL, base_params)
+                    cursor.execute(serving_sql(DIRECT_SUMMARY_COUNTY_LATEST_SQL), base_params)
             except Exception as exc:
                 raise MarketQueryFailure("market_summary_query_unavailable", "summary_sql") from exc
             try:
@@ -244,9 +245,9 @@ class PostgresMarketReadModelRepository:
             ]
             try:
                 if clean_district:
-                    cursor.execute(DIRECT_HISTORY_DISTRICT_SQL, [*base_params, clean_district, clean_limit])
+                    cursor.execute(serving_sql(DIRECT_HISTORY_DISTRICT_SQL), [*base_params, clean_district, clean_limit])
                 else:
-                    cursor.execute(DIRECT_HISTORY_COUNTY_SQL, [*base_params, clean_limit])
+                    cursor.execute(serving_sql(DIRECT_HISTORY_COUNTY_SQL), [*base_params, clean_limit])
             except Exception as exc:
                 raise MarketQueryFailure("market_history_query_unavailable", "history_sql") from exc
             try:
@@ -284,9 +285,9 @@ class PostgresMarketReadModelRepository:
                     normalized_county,
                 ]
                 if clean_district:
-                    cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [*source_params, clean_district])
+                    cursor.execute(serving_sql(DIRECT_COVERAGE_DISTRICT_SQL), [*source_params, clean_district])
                 else:
-                    cursor.execute(DIRECT_COVERAGE_COUNTY_SQL, source_params)
+                    cursor.execute(serving_sql(DIRECT_COVERAGE_COUNTY_SQL), source_params)
                 row = dict(cursor.fetchone() or {})
             except Exception as exc:
                 raise MarketQueryFailure("market_coverage_query_unavailable", "coverage_sql") from exc
@@ -308,6 +309,14 @@ class PostgresMarketReadModelRepository:
                     "valid_market_candidate_count": 0,
                     "source_updated_at": source_updated_at,
                 }
+            if serving_relation() == 'market_serving_transactions':
+                # Reviewed exclusions can empty a previously covered group.
+                # Stale persisted metadata must not resurrect coverage.
+                return {
+                    "coverage_status": "coverage_unknown",
+                    "valid_market_candidate_count": valid_count,
+                    "source_updated_at": source_updated_at,
+                }
             if metadata_result is not None:
                 return metadata_result
             return {
@@ -326,7 +335,7 @@ class PostgresMarketReadModelRepository:
                 normalized_storage_key(district),
             ]
             try:
-                cursor.execute(MARKET_ROAD_EVIDENCE_SQL, params)
+                cursor.execute(serving_sql(MARKET_ROAD_EVIDENCE_SQL), params)
                 rows = [dict(row) for row in cursor.fetchall()]
                 cursor.execute(MARKET_LATEST_IMPORT_SQL)
                 metadata = dict(cursor.fetchone() or {})
@@ -348,7 +357,7 @@ class PostgresMarketReadModelRepository:
 
                 def build_source_aggregates() -> None:
                     cursor.execute(
-                        REFRESH_TEMP_AGGREGATES_SQL,
+                        serving_sql(REFRESH_TEMP_AGGREGATES_SQL),
                         [built_at, list(canonical_region_storage_keys()), current_transaction_period(self.as_of)],
                     )
                     cursor.execute(READ_MODEL_NEXT_AGGREGATE_COUNT_SQL)
@@ -421,7 +430,7 @@ class PostgresMarketReadModelRepository:
                         try:
                             ceiling = current_transaction_period(self.as_of)
                             cursor.execute(
-                                DIRECT_COVERAGE_DISTRICT_SQL,
+                                serving_sql(DIRECT_COVERAGE_DISTRICT_SQL),
                                 [
                                     ceiling,
                                     ceiling,

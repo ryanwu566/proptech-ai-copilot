@@ -391,4 +391,7 @@ _SERVICE = CaseService(UnavailableCaseRepository())
 
 
 def get_case_service() -> CaseService:
+    from services.professor_userdb import enabled, get_repository, PostgresCaseRepository, PrivateCaseService
+    if enabled():
+        return PrivateCaseService(PostgresCaseRepository(get_repository()))
     return _SERVICE

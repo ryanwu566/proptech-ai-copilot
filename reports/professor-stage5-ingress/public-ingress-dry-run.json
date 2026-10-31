@@ -1,0 +1,62 @@
+{
+  "actual_apply_implemented": false,
+  "blockers": [
+    "identity_not_verified",
+    "wan_control_unknown",
+    "outside_lan_inbound_pending",
+    "acme_tooling_unverified",
+    "acme_staging_not_verified",
+    "production_tls_unverified",
+    "renewal_unverified",
+    "firewall_not_reviewed",
+    "reboot_tls_recovery_unverified",
+    "boot_plan_not_reviewed",
+    "host_change_approval_missing",
+    "firewall_approval_missing",
+    "router_approval_missing",
+    "dns_approval_missing",
+    "controlled_apply_not_released"
+  ],
+  "cloud_retirement_allowed": false,
+  "configuration_prerequisites_pass": false,
+  "firewall_plan": {
+    "apply_performed": false,
+    "docker_published_ports_require_independent_check": true,
+    "forward_to_lan_ipv4": "192.168.200.215",
+    "interface": "enp2s0",
+    "ipv6_public_rules_admitted": false,
+    "never_forward": [
+      5432,
+      8080,
+      8081,
+      2375,
+      2376,
+      22,
+      3322
+    ],
+    "no_ufw_reset_or_flush": true,
+    "port80_reason": "HTTP-01 issuance AND every renewal; challenge/redirect only",
+    "preserve_remote_administration": true,
+    "public_tcp_ports": [
+      80,
+      443
+    ],
+    "requires_effective_rule_review": true
+  },
+  "network": {
+    "cgnat": "UNKNOWN",
+    "inbound_reachability": "PENDING",
+    "inbound_reachability_confirmed": false,
+    "nat_assessment": "ROUTER_WAN_UNKNOWN",
+    "observed_public_ipv4": "140.119.55.43",
+    "public_ip_status": "PUBLIC_IP_OBSERVED",
+    "public_ipv4": "YES",
+    "public_ipv6": "NO",
+    "router_inspection_required": true
+  },
+  "operator_command": null,
+  "prepared_inner_proxy": "# PREPARED replacement, not installed. Existing port8080 stays loopback.\nworker_processes 1;\npid /tmp/nginx.pid;\nerror_log /dev/null crit;\nevents { worker_connections 256; }\nhttp {\n    access_log off;\n    server_tokens off;\n    client_body_temp_path /tmp/client_temp;\n    proxy_temp_path /tmp/proxy_temp;\n    fastcgi_temp_path /tmp/fastcgi_temp;\n    uwsgi_temp_path /tmp/uwsgi_temp;\n    scgi_temp_path /tmp/scgi_temp;\n    client_max_body_size 1m;\n    client_header_timeout 10s;\n    client_body_timeout 15s;\n    large_client_header_buffers 4 32k;\n    keepalive_timeout 15s;\n    server {\n        listen 8080;\n        server_name _;\n        proxy_set_header Host $host;\n        proxy_set_header X-Forwarded-For \"\";\n        proxy_set_header X-Real-IP \"\";\n        proxy_set_header X-Forwarded-Proto \"\";\n        proxy_set_header Forwarded \"\";\n        proxy_connect_timeout 3s;\n        proxy_read_timeout 30s;\n        proxy_send_timeout 30s;\n        proxy_next_upstream off;\n        location = /valuation/ml/v1/status {\n            limit_except GET OPTIONS { deny all; }\n            proxy_pass http://unix:/run/proptech-ml/inference.sock:;\n        }\n        location = /valuation/ml/v1/estimate {\n            limit_except POST OPTIONS { deny all; }\n            proxy_pass http://unix:/run/proptech-ml/inference.sock:;\n        }\n        location /valuation/ml/ { return 404; }\n        location / { proxy_pass http://api:8080; }\n    }\n}\n",
+  "production_ready": false,
+  "ready_for_operator_apply": false,
+  "remote_credential_inventory_complete": false
+}

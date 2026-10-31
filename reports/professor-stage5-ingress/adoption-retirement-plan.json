@@ -1,0 +1,655 @@
+{
+  "schema": "professor-stage5-adoption-retirement-plan-v1",
+  "values_included": false,
+  "plan_only": true,
+  "provider_adoption": [
+    {
+      "provider": "Professor runtime credentials",
+      "credential_names": [
+        "DATABASE_URL",
+        "API_USAGE_DATABASE_URL",
+        "API_USAGE_PEER_HMAC_KEY",
+        "PILOT_SESSION_SIGNING_KEY",
+        "VALUATION_DATABASE_URL",
+        "PROFESSOR_USER_DATABASE_URL"
+      ],
+      "professor_secret_files": [
+        "/etc/proptech-selfhost/secrets/app_database_url",
+        "/etc/proptech-selfhost/secrets/usage_database_url",
+        "/etc/proptech-selfhost/secrets/usage_peer_hmac_key",
+        "/etc/proptech-selfhost/secrets/pilot_session_signing_key",
+        "/etc/proptech-selfhost/secrets/valuation_database_url",
+        "/etc/proptech-selfhost/secrets/professor_user_database_url"
+      ],
+      "professor_presence": {
+        "DATABASE_URL": "PRESENT_ACCEPTED_RECEIPT",
+        "API_USAGE_DATABASE_URL": "PRESENT_ACCEPTED_RECEIPT",
+        "API_USAGE_PEER_HMAC_KEY": "PRESENT_ACCEPTED_RECEIPT",
+        "PILOT_SESSION_SIGNING_KEY": "PRESENT_ACCEPTED_RECEIPT",
+        "VALUATION_DATABASE_URL": "PRESENT_ACCEPTED_RECEIPT",
+        "PROFESSOR_USER_DATABASE_URL": "PRESENT_ACCEPTED_RECEIPT"
+      },
+      "target_consumer": "API six-file profile; admin/init secrets excluded",
+      "local_service_or_job": "existing api/postgres services",
+      "local_data_path_or_schema": "proptech_app / proptech_api_usage / proptech_valuation",
+      "local_api_capability": "existing application and serving APIs",
+      "required_current_profile": true,
+      "migrated": "YES",
+      "tested": "YES",
+      "test_scope": "accepted private DB TLS/privilege probe plus configuration metadata; not public cutover",
+      "automatic_activation": false,
+      "timer_or_cron": "NONE_UNLESS_SEPARATELY_ADMITTED",
+      "optional_presence_or_admission_proven": true
+    },
+    {
+      "provider": "Google Maps / Places / Routes",
+      "credential_names": [
+        "GOOGLE_MAPS_API_KEY"
+      ],
+      "professor_secret_files": [
+        "/etc/proptech-selfhost/secrets/google_maps_api_key"
+      ],
+      "professor_presence": {
+        "GOOGLE_MAPS_API_KEY": "UNKNOWN"
+      },
+      "target_consumer": "separately admitted backend provider only",
+      "local_service_or_job": "existing bounded adapters",
+      "local_data_path_or_schema": "no local credential-bearing dataset",
+      "local_api_capability": "geocoding / places / routes",
+      "required_current_profile": false,
+      "migrated": "NO",
+      "tested": "NO",
+      "test_scope": "accepted local profile only; no new provider calls",
+      "automatic_activation": false,
+      "timer_or_cron": "NONE_UNLESS_SEPARATELY_ADMITTED",
+      "optional_presence_or_admission_proven": false
+    },
+    {
+      "provider": "Google browser maps",
+      "credential_names": [
+        "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY"
+      ],
+      "professor_secret_files": [],
+      "professor_presence": {
+        "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY": "FRONTEND_ONLY_NOT_A_SERVER_SECRET"
+      },
+      "target_consumer": "Vercel frontend only",
+      "local_service_or_job": "existing browser integration",
+      "local_data_path_or_schema": "frontend public configuration only",
+      "local_api_capability": "Maps JavaScript / Street View",
+      "required_current_profile": false,
+      "migrated": "NO",
+      "tested": "NO",
+      "test_scope": "accepted local profile only; no new provider calls",
+      "automatic_activation": false,
+      "timer_or_cron": "NONE_UNLESS_SEPARATELY_ADMITTED",
+      "optional_presence_or_admission_proven": false
+    },
+    {
+      "provider": "Earth Engine",
+      "credential_names": [
+        "GOOGLE_APPLICATION_CREDENTIALS",
+        "EARTH_ENGINE_PROJECT"
+      ],
+      "professor_secret_files": [
+        "/etc/proptech-selfhost/secrets/earth_engine_adc_json"
+      ],
+      "professor_presence": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "UNKNOWN",
+        "EARTH_ENGINE_PROJECT": "NONSECRET_PROJECT_METADATA_NOT_REVALIDATED"
+      },
+      "target_consumer": "separately admitted satellite worker",
+      "local_service_or_job": "existing bounded Earth Engine worker pool",
+      "local_data_path_or_schema": "protected ADC file; no image-layer copy",
+      "local_api_capability": "optional satellite reference",
+      "required_current_profile": false,
+      "migrated": "NO",
+      "tested": "NO",
+      "test_scope": "accepted local profile only; no new provider calls",
+      "automatic_activation": false,
+      "timer_or_cron": "NONE_UNLESS_SEPARATELY_ADMITTED",
+      "optional_presence_or_admission_proven": false
+    },
+    {
+      "provider": "TGOS",
+      "credential_names": [
+        "TGOS_APP_ID",
+        "TGOS_API_KEY"
+      ],
+      "professor_secret_files": [
+        "/etc/proptech-selfhost/secrets/tgos_app_id",
+        "/etc/proptech-selfhost/secrets/tgos_api_key"
+      ],
+      "professor_presence": {
+        "TGOS_APP_ID": "UNKNOWN",
+        "TGOS_API_KEY": "UNKNOWN"
+      },
+      "target_consumer": "separately admitted backend geocoder",
+      "local_service_or_job": "existing canonical TGOS adapter",
+      "local_data_path_or_schema": "no transformed source archive",
+      "local_api_capability": "optional address resolution",
+      "required_current_profile": false,
+      "migrated": "NO",
+      "tested": "NO",
+      "test_scope": "accepted local profile only; no new provider calls",
+      "automatic_activation": false,
+      "timer_or_cron": "NONE_UNLESS_SEPARATELY_ADMITTED",
+      "optional_presence_or_admission_proven": false
+    },
+    {
+      "provider": "TDX",
+      "credential_names": [
+        "TDX_CLIENT_ID",
+        "TDX_CLIENT_SECRET"
+      ],
+      "professor_secret_files": [
+        "/etc/proptech-selfhost/secrets/tdx_client_id",
+        "/etc/proptech-selfhost/secrets/tdx_client_secret"
+      ],
+      "professor_presence": {
+        "TDX_CLIENT_ID": "UNKNOWN",
+        "TDX_CLIENT_SECRET": "UNKNOWN"
+      },
+      "target_consumer": "future restricted snapshot producer, never current API profile",
+      "local_service_or_job": "commute persistence adapter required",
+      "local_data_path_or_schema": "/srv/proptech-runtime/commute (PROPOSED, not created)",
+      "local_api_capability": "optional commute snapshot consumer",
+      "required_current_profile": false,
+      "migrated": "NO",
+      "tested": "NO",
+      "test_scope": "accepted local profile only; no new provider calls",
+      "automatic_activation": false,
+      "timer_or_cron": "NONE_UNLESS_SEPARATELY_ADMITTED",
+      "optional_presence_or_admission_proven": false
+    },
+    {
+      "provider": "Cloudflare R2",
+      "credential_names": [
+        "R2_ACCESS_KEY_ID",
+        "R2_SECRET_ACCESS_KEY"
+      ],
+      "professor_secret_files": [
+        "/etc/proptech-selfhost/secrets/r2_access_key_id",
+        "/etc/proptech-selfhost/secrets/r2_secret_access_key"
+      ],
+      "professor_presence": {
+        "R2_ACCESS_KEY_ID": "UNKNOWN",
+        "R2_SECRET_ACCESS_KEY": "UNKNOWN"
+      },
+      "target_consumer": "optional archive/upload or remote-artifact consumer",
+      "local_service_or_job": "separately admitted operations only",
+      "local_data_path_or_schema": "/srv/proptech-data/DB local NLSC/WRA remain sufficient",
+      "local_api_capability": "no R2 dependency for active local NLSC/WRA",
+      "required_current_profile": false,
+      "migrated": "NO",
+      "tested": "NO",
+      "test_scope": "accepted local profile only; no new provider calls",
+      "automatic_activation": false,
+      "timer_or_cron": "NONE_UNLESS_SEPARATELY_ADMITTED",
+      "optional_presence_or_admission_proven": false
+    },
+    {
+      "provider": "Supabase browser configuration",
+      "credential_names": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+      ],
+      "professor_secret_files": [],
+      "professor_presence": {
+        "NEXT_PUBLIC_SUPABASE_URL": "FRONTEND_ONLY_NOT_A_SERVER_SECRET",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "FRONTEND_ONLY_NOT_A_SERVER_SECRET"
+      },
+      "target_consumer": "Vercel frontend only",
+      "local_service_or_job": "existing Supabase identity SDK",
+      "local_data_path_or_schema": "identities retained in accepted Supabase project",
+      "local_api_capability": "register/login/refresh",
+      "required_current_profile": false,
+      "migrated": "NO",
+      "tested": "NO",
+      "test_scope": "accepted local profile only; no new provider calls",
+      "automatic_activation": false,
+      "timer_or_cron": "NONE_UNLESS_SEPARATELY_ADMITTED",
+      "optional_presence_or_admission_proven": false
+    },
+    {
+      "provider": "Supabase server verification",
+      "credential_names": [
+        "SUPABASE_URL",
+        "SUPABASE_JWT_ISSUER",
+        "SUPABASE_JWT_AUDIENCE"
+      ],
+      "professor_secret_files": [],
+      "professor_presence": {
+        "SUPABASE_URL": "PUBLIC_METADATA_ACCEPTED_STAGE4A",
+        "SUPABASE_JWT_ISSUER": "PUBLIC_METADATA_ACCEPTED_STAGE4A",
+        "SUPABASE_JWT_AUDIENCE": "PUBLIC_METADATA_ACCEPTED_STAGE4A"
+      },
+      "target_consumer": "FastAPI public JWKS verifier",
+      "local_service_or_job": "existing Stage4A identity adapter",
+      "local_data_path_or_schema": "Professor application-user schema; no Supabase signing/service-role secret",
+      "local_api_capability": "session/profile/saved cases",
+      "required_current_profile": true,
+      "migrated": "YES",
+      "tested": "NO",
+      "test_scope": "verification configuration adopted; this local receipt does not exercise authorized provider session/profile/saved-case persistence",
+      "automatic_activation": false,
+      "timer_or_cron": "NONE_UNLESS_SEPARATELY_ADMITTED",
+      "optional_presence_or_admission_proven": true
+    },
+    {
+      "provider": "Government local/open-data and archives",
+      "credential_names": [],
+      "professor_secret_files": [],
+      "professor_presence": {},
+      "target_consumer": "existing supported GIS/RIS consumers",
+      "local_service_or_job": "read-only local artifacts or existing admitted open-data contract",
+      "local_data_path_or_schema": "/srv/proptech-data/DB; RIS in proptech_app",
+      "local_api_capability": "NLSC/RIS/WRA active; unsupported archives stay explicit",
+      "required_current_profile": false,
+      "migrated": "NO",
+      "tested": "NO",
+      "test_scope": "accepted local profile only; no new provider calls",
+      "automatic_activation": false,
+      "timer_or_cron": "NONE_UNLESS_SEPARATELY_ADMITTED",
+      "optional_presence_or_admission_proven": false
+    },
+    {
+      "provider": "Other optional / restricted provider credentials",
+      "credential_names": [
+        "OPENAI_API_KEY",
+        "NLSC_GATEWAY_CLIENT_TOKEN"
+      ],
+      "professor_secret_files": [
+        "/etc/proptech-selfhost/secrets/openai_api_key",
+        "/etc/proptech-selfhost/secrets/nlsc_gateway_client_token"
+      ],
+      "professor_presence": {
+        "OPENAI_API_KEY": "UNKNOWN",
+        "NLSC_GATEWAY_CLIENT_TOKEN": "UNKNOWN"
+      },
+      "target_consumer": "separately reviewed consumer only",
+      "local_service_or_job": "no new provider activation",
+      "local_data_path_or_schema": "protected Stage2 file contract if admitted",
+      "local_api_capability": "no current-profile requirement",
+      "required_current_profile": false,
+      "migrated": "NO",
+      "tested": "NO",
+      "test_scope": "accepted local profile only; no new provider calls",
+      "automatic_activation": false,
+      "timer_or_cron": "NONE_UNLESS_SEPARATELY_ADMITTED",
+      "optional_presence_or_admission_proven": false
+    }
+  ],
+  "workflow_decisions": [
+    {
+      "kind": "commute",
+      "workflow": ".github/workflows/refresh-commute-snapshot.yml",
+      "target_decision": "A_MOVE_TO_PROFESSOR",
+      "interim_decision": "C_KEEP_EXISTING_EXTERNAL_DEFINITION_UNCHANGED",
+      "preserve_prior_activity_state": true,
+      "external_execution_requested": false,
+      "target_selection_scope": "self-hosted design; no execution/installation approval",
+      "whole_workflow_retirement_selected": false,
+      "migrated": "NO",
+      "tested": "NO",
+      "retirement_ready": "NO",
+      "activated": false,
+      "public_api_retarget_allowed": false,
+      "timer": "NONE_MANUAL_CADENCE_PRESERVED",
+      "target_service": "proposed local manual one-shot; not installed",
+      "implementation_required": "persistent snapshot producer plus API loader/reload contract; separate CLI cannot update API process memory",
+      "proposed_systemd_unit": "proptech-commute-snapshot.service",
+      "credentials": "TDX_CLIENT_ID / TDX_CLIENT_SECRET files for admitted producer only; no new API mounts",
+      "data": "/srv/proptech-runtime/commute (PROPOSED, not created)",
+      "api_capability": "/commute/status and /commute/nearest",
+      "reuse_serving_runtime_write_privilege_allowed": false,
+      "new_restricted_operations_role_required": false,
+      "safety": [
+        "market_ops stays disabled",
+        "no public maintenance endpoint",
+        "no raw transaction deletion or TRUNCATE",
+        "preserve row38652 storage and serving exclusion",
+        "ambiguous evidence remains protected",
+        "bounded single-writer execution and transactional rollback"
+      ],
+      "current_snapshot_storage": "API_PROCESS_MEMORY_ONLY",
+      "separate_oneshot_is_runtime_compatible": false
+    },
+    {
+      "kind": "market",
+      "workflow": ".github/workflows/refresh-market-read-model.yml",
+      "target_decision": "A_MOVE_TO_PROFESSOR",
+      "interim_decision": "C_KEEP_EXISTING_EXTERNAL_DEFINITION_UNCHANGED",
+      "preserve_prior_activity_state": true,
+      "external_execution_requested": false,
+      "target_selection_scope": "self-hosted design; no execution/installation approval",
+      "whole_workflow_retirement_selected": false,
+      "migrated": "NO",
+      "tested": "NO",
+      "retirement_ready": "NO",
+      "activated": false,
+      "public_api_retarget_allowed": false,
+      "timer": "NONE_MANUAL_CADENCE_PRESERVED",
+      "target_service": "proposed local manual one-shot; not installed",
+      "implementation_required": "reviewed local operations adapter and scoped role",
+      "proposed_systemd_unit": "proptech-market-reconcile.service",
+      "credentials": "new restricted maintenance-role file contract requires separate review; never reuse serving/admin URL",
+      "data": "proptech_valuation derived Market read models only",
+      "api_capability": "Market/Trend/Finder/Valuation read consistency",
+      "reuse_serving_runtime_write_privilege_allowed": false,
+      "new_restricted_operations_role_required": true,
+      "safety": [
+        "market_ops stays disabled",
+        "no public maintenance endpoint",
+        "no raw transaction deletion or TRUNCATE",
+        "preserve row38652 storage and serving exclusion",
+        "ambiguous evidence remains protected",
+        "bounded single-writer execution and transactional rollback"
+      ],
+      "legacy_refresh_copy_allowed": false
+    },
+    {
+      "kind": "coverage",
+      "workflow": ".github/workflows/reconcile-market-coverage.yml",
+      "target_decision": "A_MOVE_TO_PROFESSOR",
+      "interim_decision": "C_KEEP_EXISTING_EXTERNAL_DEFINITION_UNCHANGED",
+      "preserve_prior_activity_state": true,
+      "external_execution_requested": false,
+      "target_selection_scope": "self-hosted design; no execution/installation approval",
+      "whole_workflow_retirement_selected": false,
+      "migrated": "NO",
+      "tested": "NO",
+      "retirement_ready": "NO",
+      "activated": false,
+      "public_api_retarget_allowed": false,
+      "timer": "NONE_MANUAL_CADENCE_PRESERVED",
+      "target_service": "proposed local manual one-shot; not installed",
+      "implementation_required": "reviewed local operations adapter and scoped role",
+      "proposed_systemd_unit": "proptech-coverage-audit.service",
+      "credentials": "new restricted maintenance-role file contract requires separate review; never reuse serving/admin URL",
+      "data": "proptech_valuation derived Market read models only",
+      "api_capability": "Market/Trend/Finder/Valuation read consistency",
+      "reuse_serving_runtime_write_privilege_allowed": false,
+      "new_restricted_operations_role_required": true,
+      "safety": [
+        "market_ops stays disabled",
+        "no public maintenance endpoint",
+        "no raw transaction deletion or TRUNCATE",
+        "preserve row38652 storage and serving exclusion",
+        "ambiguous evidence remains protected",
+        "bounded single-writer execution and transactional rollback"
+      ],
+      "legacy_bootstrap_step": "B_NOT_CARRIED_FORWARD_ALREADY_PROVISIONED"
+    }
+  ],
+  "cloud_run": {
+    "fully_inventoried": false,
+    "retirement_matrix": [
+      {
+        "dependency": "Private API baseline availability",
+        "replacement": "accepted Professor API",
+        "migrated": "YES",
+        "tested": "YES",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "Local NLSC/RIS/WRA replacement",
+        "replacement": "verified local datasets and existing APIs",
+        "migrated": "YES",
+        "tested": "YES",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": "gis"
+      },
+      {
+        "dependency": "Local ML replacement",
+        "replacement": "accepted pinned ML companion",
+        "migrated": "YES",
+        "tested": "YES",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": "ml"
+      },
+      {
+        "dependency": "Supabase-backed authorized user flows",
+        "replacement": "accepted Stage4 backend; real provider/caller migration acceptance pending",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "real authorized session/profile/saved-case persistence and cross-user public E2E",
+        "capability": "authenticated_user_flows"
+      },
+      {
+        "dependency": "Application/usage/valuation/user runtime credentials",
+        "replacement": "existing six-file Stage2/4 profile",
+        "migrated": "YES",
+        "tested": "YES",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "Public deployed callers",
+        "replacement": "direct NGINX HTTPS plus Vercel Preview/Production",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "Unique remote mutable data and background users",
+        "replacement": "verified Professor data authority and scoped local jobs",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "Reboot / trusted TLS renewal / rollback",
+        "replacement": "reviewed persistent restoration and service ordering",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "Provider keys and ADC/service identity/IAM",
+        "replacement": "protected optional provider files and individually approved IAM",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "Current/retained revision and rollback inventory",
+        "replacement": "verified cloud metadata plus retained Professor release artifacts",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      }
+    ],
+    "retirement_allowed": false
+  },
+  "render": {
+    "fully_inventoried": false,
+    "retirement_matrix": [
+      {
+        "dependency": "Private API baseline availability",
+        "replacement": "accepted Professor API",
+        "migrated": "YES",
+        "tested": "YES",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "Local NLSC/RIS/WRA replacement",
+        "replacement": "verified local datasets and existing APIs",
+        "migrated": "YES",
+        "tested": "YES",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": "gis"
+      },
+      {
+        "dependency": "Local ML replacement",
+        "replacement": "accepted pinned ML companion",
+        "migrated": "YES",
+        "tested": "YES",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": "ml"
+      },
+      {
+        "dependency": "Supabase-backed authorized user flows",
+        "replacement": "accepted Stage4 backend; real provider/caller migration acceptance pending",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "real authorized session/profile/saved-case persistence and cross-user public E2E",
+        "capability": "authenticated_user_flows"
+      },
+      {
+        "dependency": "Application/usage/valuation/user runtime credentials",
+        "replacement": "existing six-file Stage2/4 profile",
+        "migrated": "YES",
+        "tested": "YES",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "Public deployed callers",
+        "replacement": "direct NGINX HTTPS plus Vercel Preview/Production",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "Unique remote mutable data and background users",
+        "replacement": "verified Professor data authority and scoped local jobs",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "Reboot / trusted TLS renewal / rollback",
+        "replacement": "reviewed persistent restoration and service ordering",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "Render provider/env-group/file inventory",
+        "replacement": "verified names-only inventory and Stage2 adoption",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "commute maintenance workflow",
+        "replacement": "proposed local manual one-shot; not installed; persistent snapshot producer plus API loader/reload contract; separate CLI cannot update API process memory",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "market maintenance workflow",
+        "replacement": "proposed local manual one-shot; not installed; reviewed local operations adapter and scoped role",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      },
+      {
+        "dependency": "coverage maintenance workflow",
+        "replacement": "proposed local manual one-shot; not installed; reviewed local operations adapter and scoped role",
+        "migrated": "NO",
+        "tested": "NO",
+        "retirement_ready": "NO",
+        "evidence_scope": "accepted local replacement only; not production caller cutover",
+        "remaining_proof": "actual deployed dependency evidence and approved public cutover",
+        "capability": null
+      }
+    ],
+    "retirement_allowed": false
+  },
+  "provider_credentials_audited": false,
+  "credential_name_scopes_complete": false,
+  "audit_scope_note": "Names alone do not prove deployed ADC/IAM or all required production credentials on Professor; this planning input cannot certify that closure.",
+  "production_critical_credentials_on_server": "PARTIAL",
+  "missing_required_credentials": [],
+  "ready_to_retire_credentials": [],
+  "known_local_profile_evidence": true,
+  "local_functional_evidence": true,
+  "privileged_installation_required_now": false,
+  "operator_installation_command": null,
+  "installation_note": "No missing current-profile credential confirmed; optional jobs/providers require separate admission, so no speculative privileged installer is released.",
+  "cloud_run_metadata_required": [
+    "actual env/secret-reference names",
+    "attached service-account identity and ADC source",
+    "effective IAM roles/API restrictions",
+    "deployed callers and scheduled/background consumers",
+    "retained revisions and rollback identity"
+  ],
+  "render_metadata_required": [
+    "actual env/group/file names",
+    "deployed callers and current service identity",
+    "three workflow activity/disposition and validation",
+    "unique mutable state and rollback"
+  ],
+  "retirement_gates": [
+    "outside-LAN trusted Professor HTTPS",
+    "Vercel Preview and Production authenticated E2E",
+    "profile/saved-case ownership and persistence",
+    "ML/GIS/Market/Valuation accepted behavior",
+    "all required credential dependencies adopted",
+    "reboot and renewal acceptance",
+    "no unique remote state/caller remains",
+    "explicit retirement approval"
+  ],
+  "waiting_only_for_router_wan": false,
+  "ready_for_operator_ingress_apply": false,
+  "retirement_allowed": false,
+  "actions_executed": []
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "professor-stage4a-controlled-activation-readiness-v1",
+  "checked_at": "2026-10-30T03:58:21.405910+00:00",
+  "status": "PASS_PREPARED_OPERATOR_WORKFLOW",
+  "ready_for_operator_command": true,
+  "operator_command": "sudo python3 -B /home/andy/.codex/worktrees/bb30/proptech-ai-copilot/scripts/ops/professor_stage4a_activation.py --apply",
+  "activation_performed": false,
+  "stage4a_complete": false,
+  "scope": "Prepare, scan and validate exact candidate/actual host merge, then require ACTIVATE before authority flag/API-only recreation.",
+  "captured_accepted_active_image": "sha256:035a049691b0038f7508acc00c3e9bb82c101a295c9f45edcea8d1b03b3d42a0",
+  "actual_compose_files": [
+    "/home/andy/proptech-ai-copilot/docker-compose.selfhost.yml",
+    "/etc/proptech-selfhost/datasets.override.yml",
+    "/etc/proptech-selfhost/valuation.override.yml",
+    "/etc/proptech-selfhost/local-frontend.override.yml",
+    "/etc/proptech-selfhost/stage2-secrets.override.yml"
+  ],
+  "mandatory_gates_before_ACTIVATE": {
+    "clean_committed_isolated_source": true,
+    "accepted_image_and_actual_running_config_match": true,
+    "exact_image_layers_history_context_output_secret_scan": true,
+    "actual_compose_api_only_delta": true,
+    "dedicated_role_tls_and_exact_catalog_grants": true,
+    "honest_pending_authority_flag": true,
+    "immutable_NLSC_WRA_artifacts_no_network": true,
+    "Stage1_2_API_database_regressions": true,
+    "Stage3_companion_model_status_and_estimate": true,
+    "private_backups_and_executable_rollback": true
+  },
+  "candidate_image_id": null,
+  "actual_candidate_image_validation_performed_by_agent": false,
+  "actual_host_compose_merge_validation_performed_by_agent": false,
+  "reason": "Agent cannot access Docker socket/root-only config. Reviewed operator workflow enforces these dynamic gates and prints exact image/change plan before confirmation.",
+  "change_scope": {
+    "recreate": [
+      "api"
+    ],
+    "reverse_proxy": "nginx configuration test and bounded worker reload/recovery; no container restart/recreation",
+    "unchanged_containers": [
+      "postgres_app",
+      "postgres_usage",
+      "reverse_proxy"
+    ],
+    "database_write": "conditional authority_reviewed flag only",
+    "source_transactions_changed": false,
+    "secrets_rotated_or_installed": false,
+    "secret_mounts": "existing five core read-only plus one dedicated professor_user_runtime URL in separate directory",
+    "postgres_ports": "none",
+    "host_8080": "127.0.0.1",
+    "market_ops": "disabled",
+    "paid_providers": "disabled",
+    "local_dataset_roots_preserved": true,
+    "x9_required": false,
+    "standalone_Stage3_companion": "never signalled/replaced; pinned status and known estimate verified"
+  },
+  "rollback": {
+    "status": "PASS_PREPARED_AND_STATIC_TESTED",
+    "evidence_location": "/var/backups/proptech-selfhost/stage4a-activation/<run>/",
+    "executable": "ROLLBACK.sh",
+    "automatic_on_failure_after_override_installation": true,
+    "restored_api_image": "sha256:035a049691b0038f7508acc00c3e9bb82c101a295c9f45edcea8d1b03b3d42a0",
+    "original_compose_chain_restored": true,
+    "existing_etc_files_modified": false,
+    "new_override_moved_within_etc": true,
+    "authority_decision_retained": true,
+    "user_data_retained": true,
+    "database_containers_or_volumes_recreated": false,
+    "phase_caps_seconds": {
+      "compose": 240,
+      "api_health": 300,
+      "proxy_recovery": 150,
+      "whole_rollback": 810
+    },
+    "hermetic_environment": true
+  },
+  "tests": {
+    "focused_pack": "193 passed, 1 skipped, 28 subtests passed; 8 relevant modules; skip was unavailable zstd decoder in Python 3.12",
+    "final_changed_activator": "34 passed in 5.66s on final reviewed source",
+    "system_python_image_scanner": "29 unittest tests passed with Python 3.14.4, including zstd; no skip",
+    "static": "14 checks PASS: source/embedded AST, generated Bash -n, diff check, frontend hash",
+    "compose_cli": "Docker Compose 5.6.1 exact synthetic merge PASS; actual root-only merge mandatory inside command",
+    "unchanged_live_api": "12 checks PASS",
+    "unchanged_live_Stage3": "health/status/known estimate PASS; pinned model and non-actionable semantics retained",
+    "full_repository_suite_run": false
+  },
+  "security_review": "activation-security-review.json",
+  "approval_review": "authority-approval-review.json",
+  "static_review": "activation-static-validation.json",
+  "later_acceptance": [
+    "operator activation receipt",
+    "final active image/mounts/private-role acceptance",
+    "frontend authenticated login/cross-device Saved Cases acceptance"
+  ],
+  "safety": {
+    "sudo_executed_by_agent": false,
+    "old_provisioning_or_postprovision_inspection_rerun": false,
+    "secret_values_read_or_returned_by_agent": false,
+    "Supabase_users_or_credentials_modified": false,
+    "frontend_files_changed": false,
+    "main_or_history_worktree_modified": false,
+    "dev_sda_touched": false,
+    "X9_touched": false,
+    "remote_or_deployment_changes": false,
+    "pushed": false
+  },
+  "reviewed_operator_source_sha256": "e56074f506ee98cfbbe754266d724dc18fa5d5ed405f650afeefcf290a9cd186"
+}

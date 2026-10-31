@@ -1,0 +1,90 @@
+{
+  "status": "PASS",
+  "all_holdout_rows": 43404,
+  "supported_rows": 42853,
+  "abstained_rows": 551,
+  "support_coverage_percent": 98.73053174822597,
+  "support_policy": {
+    "minimum_fit_rows": 50,
+    "minimum_recent_36_month_rows": 20
+  },
+  "all_holdout_metrics": {
+    "rows": 43404,
+    "mae_ntd_ping": 47731.31071107794,
+    "rmse_ntd_ping": 73722.11613240164,
+    "median_absolute_error_ntd_ping": 32038.092827131113,
+    "mape_percent": 14.855654950759307,
+    "median_absolute_percentage_error": 10.5644758024775,
+    "wape_percent": 13.366812480118865,
+    "smape_percent": 13.876179289360696,
+    "signed_bias_ntd_ping": -2868.6527126899155,
+    "absolute_error_quantiles_ntd_ping": {
+      "p50": 32038.092827131113,
+      "p75": 60725.79606844326,
+      "p90": 104451.28109553183,
+      "p95": 145554.02241835007,
+      "p99": 261922.43627612607,
+      "p100": 1329700.5944495513
+    },
+    "absolute_percentage_error_quantiles": {
+      "p50": 10.5644758024775,
+      "p75": 18.84672809258368,
+      "p90": 30.436856227180908,
+      "p95": 41.333145341172035,
+      "p99": 80.84890381998619
+    }
+  },
+  "supported_holdout_metrics": {
+    "rows": 42853,
+    "mae_ntd_ping": 47898.8711199696,
+    "rmse_ntd_ping": 73963.23260946017,
+    "median_absolute_error_ntd_ping": 32097.312560136663,
+    "mape_percent": 14.746161957035827,
+    "median_absolute_percentage_error": 10.513790167647972,
+    "wape_percent": 13.338073309230486,
+    "smape_percent": 13.808538520712768,
+    "signed_bias_ntd_ping": -2920.630093162418,
+    "absolute_error_quantiles_ntd_ping": {
+      "p50": 32097.312560136663,
+      "p75": 60959.94272922017,
+      "p90": 104933.34540752508,
+      "p95": 146039.74248874024,
+      "p99": 262706.30217362096,
+      "p100": 1329700.5944495513
+    },
+    "absolute_percentage_error_quantiles": {
+      "p50": 10.513790167647972,
+      "p75": 18.788684009018606,
+      "p90": 30.308123746712344,
+      "p95": 41.11211069623576,
+      "p99": 80.03771825022282
+    }
+  },
+  "abstained_rows_diagnostic_metrics": {
+    "rows": 551,
+    "mae_ntd_ping": 34699.61161446423,
+    "rmse_ntd_ping": 51628.459398400606,
+    "median_absolute_error_ntd_ping": 28210.198408188502,
+    "mape_percent": 23.37126885281418,
+    "median_absolute_percentage_error": 14.507685639760737,
+    "wape_percent": 17.389285849525788,
+    "smape_percent": 19.136814241937245,
+    "signed_bias_ntd_ping": 1173.7913624246814,
+    "absolute_error_quantiles_ntd_ping": {
+      "p50": 28210.198408188502,
+      "p75": 44670.56535460039,
+      "p90": 69621.08809567268,
+      "p95": 84130.83037548629,
+      "p99": 142837.30847763555,
+      "p100": 472728.21195197647
+    },
+    "absolute_percentage_error_quantiles": {
+      "p50": 14.507685639760737,
+      "p75": 23.761805108922545,
+      "p90": 40.73583546179966,
+      "p95": 62.941450337883865,
+      "p99": 178.67450426633297
+    }
+  },
+  "scope": "Support-only policy, fixed before holdout scoring. Metrics for rejected rows are diagnostic, not served estimates. No tuning based on holdout."
+}

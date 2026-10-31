@@ -1,0 +1,23 @@
+{
+  "schema": "professor-stage5-live-release-metadata-v1",
+  "observed_at": "2026-10-30T08:07:48.122043+00:00",
+  "origin": "https://proptech-earth-engine-api-712372598609.asia-east1.run.app",
+  "path": "/release-version",
+  "method": "GET",
+  "evidence_class": "VERIFIED_LIVE",
+  "configuration_values_exported": false,
+  "credentials_requested": false,
+  "http_status": 200,
+  "response_sha256": "608aa7eb25760718a17ab1a1c954fc75a94cf3260372b840e287280f012b0cab",
+  "metadata": {
+    "commit_sha": "unconfigured",
+    "release_version": "unconfigured",
+    "api_contract_version": "api-contract-v1",
+    "schema_version": "schema-007",
+    "build_timestamp": "unconfigured"
+  },
+  "limitations": [
+    "self-reported release metadata, not a control-plane image digest or revision identity",
+    "successful unauthenticated GET is public availability evidence, not configured ingress/IAM policy"
+  ]
+}

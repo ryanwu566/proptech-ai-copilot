@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "checks": {
+    "python_ast": 7,
+    "generated_python_ast": 1,
+    "generated_bash_syntax": 2,
+    "systemd_fixture_units": 7
+  },
+  "fixture_identity_only": "api.example.com (reserved test domain, never configured)",
+  "live_host_installation_validated": false,
+  "units_installed": false,
+  "services_started": false,
+  "public_ports_bound": false
+}

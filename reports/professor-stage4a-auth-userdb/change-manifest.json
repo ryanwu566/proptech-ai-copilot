@@ -1,0 +1,29 @@
+{
+  "base": "85a489d2cbd07c9df80bfa12206cc6a6242cf159",
+  "paths": [
+    "backend/api/abuse_middleware.py",
+    "backend/api_main.py",
+    "services/vnext/accounts.py",
+    "services/vnext/auth.py",
+    "services/vnext/durable_cases.py",
+    "backend/api/user_data.py",
+    "database/userdb/001_professor_users.sql",
+    "docs/contracts/auth-user-api-v1.md",
+    "docs/operations/professor-stage4a-auth-userdb.md",
+    "docs/superpowers/plans/2026-10-30-stage4a-auth-userdb.md",
+    "docs/superpowers/specs/2026-10-30-stage4a-auth-userdb-design.md",
+    "infra/selfhost/professor-userdb.override.yml",
+    "reports/professor-stage4a-auth-userdb/acceptance.json",
+    "reports/professor-stage4a-auth-userdb/live-baseline.json",
+    "reports/professor-stage4a-auth-userdb/security-review.json",
+    "scripts/ops/professor_stage4a_entrypoint.py",
+    "scripts/ops/professor_stage4a_provision.py",
+    "services/professor_userdb.py",
+    "tests/test_professor_stage4a_ops.py",
+    "tests/test_professor_user_api.py",
+    "tests/test_professor_userdb.py",
+    "reports/professor-stage4a-auth-userdb/change-manifest.json"
+  ],
+  "frontend_paths_included": false,
+  "actual_credential_files_included": false
+}

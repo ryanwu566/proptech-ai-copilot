@@ -1,0 +1,47 @@
+{
+  "schema": "professor-public-sdk-class-observation-v1",
+  "asset_sha256": "39cf21f28d4ca1104c5f229e12bc5e61003ed42db7d2c6a10aa09d0567a4c7ba",
+  "asset_hash_verified": true,
+  "definitions": [
+    {
+      "value_kind": "ClassExpression",
+      "class_methods": [
+        "functions",
+        "from",
+        "schema",
+        "getOpenApiSpec",
+        "rpc",
+        "channel",
+        "getChannels",
+        "removeChannel",
+        "removeAllChannels",
+        "_getSessionToken",
+        "_getAccessToken",
+        "_initSupabaseAuthClient",
+        "_initRealtimeClient",
+        "_listenForAuthEvents",
+        "_handleTokenChanged"
+      ],
+      "supabase_url_fields": [
+        {
+          "name": "authUrl",
+          "present": true
+        },
+        {
+          "name": "restUrl",
+          "present": false
+        },
+        {
+          "name": "storageUrl",
+          "present": true
+        },
+        {
+          "name": "functionsUrl",
+          "present": true
+        }
+      ],
+      "auth_client_initialized": true,
+      "key_values_returned": false
+    }
+  ]
+}

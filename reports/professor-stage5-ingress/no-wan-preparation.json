@@ -1,0 +1,98 @@
+{
+  "schema": "professor-stage5-no-wan-preparation-v1",
+  "checked_at": "2026-10-30T07:06:05.115665+00:00",
+  "status": "PARTIAL_EXTERNAL_METADATA_AND_HOST_GATES",
+  "accessible_source_preparation_complete": true,
+  "provider_credentials_audited": false,
+  "production_critical_credentials_on_server": "PARTIAL",
+  "repository_dependency_identifiers": 333,
+  "file_only_contracts": 9,
+  "four_env_examples_names_audited": true,
+  "template_name_counts": {
+    ".env.example": 21,
+    ".env.selfhost.example": 65,
+    "frontend_next/.env.example": 5,
+    "infra/selfhost/professor-secrets.env.example": 23
+  },
+  "projection_scope": "Git scans indexed allowlisted example blobs; auditor receives only anchored assignment prefixes, never RHS values",
+  "template_values_materialized": false,
+  "host_envfiles_or_private_keys_opened": false,
+  "known_current_profile_credentials": "PASS_HASH_BOUND_ACCEPTED_STAGE4A_RECEIPTS; not fresh root inspection",
+  "missing_required_credentials": [],
+  "optional_provider_store_presence": "UNKNOWN when metadata inaccessible; optional is not missing-required",
+  "ready_to_retire_credentials": [],
+  "cloud_run_dependencies_remaining": [
+    "frontend API origin and deployed callers",
+    "actual env/secret refs and IAM/ADC/provider restrictions",
+    "legacy database and user/evidence writes, backups and authority",
+    "reboot survival, TLS renewal, external acceptance and rollback",
+    "attached service identity / implicit ADC and retained revision/image metadata",
+    "Google geocoding/Places/Routes and optional Earth Engine credential consumers"
+  ],
+  "render_dependencies_remaining": [
+    "frontend API origin and deployed callers",
+    "actual env/secret refs and IAM/ADC/provider restrictions",
+    "legacy database and user/evidence writes, backups and authority",
+    "reboot survival, TLS renewal, external acceptance and rollback",
+    "three protected maintenance workflows using RENDER_API_BASE_URL",
+    "RENDER_GIT_COMMIT release metadata fallback"
+  ],
+  "render_protected_maintenance_jobs": 3,
+  "source_workflow_count": 10,
+  "git_remote_metadata": "github-read-metadata.json; remote main9cc40d6; no remote changes",
+  "github_secret_metadata_capability": "UNSUPPORTED_BY_AVAILABLE_CONNECTOR; repository/workflow metadata is not secret inventory",
+  "live_cloud_scopes": {
+    "cloud_run": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+    "github_actions": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+    "render": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+    "vercel": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED"
+  },
+  "cloud_run_render_vercel_metadata_capability": "NO_SUITABLE_AUTHENTICATED_READER",
+  "retirement_dependency_source_inventory": "PASS_SOURCE_SCOPE_ONLY",
+  "deployed_dependency_closure": false,
+  "https_plan_ready": true,
+  "waiting_only_for_router_wan": false,
+  "ready_for_operator_ingress_apply": false,
+  "operator_apply_command": null,
+  "remaining_non_wan_gates": [
+    "actual deployed credential/secret-reference inventories",
+    "fresh host metadata and trusted TLS reboot recovery source",
+    "approved ACME tooling, issuance/renewal and controlled installer",
+    "local ML service handover and maintenance-job disposition",
+    "real Preview/Production authenticated E2E and reboot acceptance"
+  ],
+  "no_wan_plans": [
+    "NGINX TLS-only edge",
+    "conditional certificate/renewal strategy",
+    "minimal firewall and admin preservation",
+    "DB TLS/secret boot ordering and ML handover",
+    "protected backup/consumer-only rollback",
+    "exact-origin Vercel Preview/Production cutover",
+    "separate local maintenance-job review"
+  ],
+  "plan_document": "docs/operations/professor-stage5/no-wan-preparation.md",
+  "retirement_inventory": "cloud-retirement-dependencies.json",
+  "tests": {
+    "tests": 55,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "static_validation": "no-wan-static-validation.json",
+  "independent_review": "review.json no_wan_continuation",
+  "safety": {
+    "sudo_executed": false,
+    "public_network_changes": false,
+    "runtime_or_database_changes": false,
+    "router_firewall_dns_changes": false,
+    "provider_activation": false,
+    "paid_provider_calls": 0,
+    "cloud_retirement": false,
+    "vercel_production_changes": false,
+    "push_performed": false,
+    "dev_sda_operations": false,
+    "x9_source_mutations": false,
+    "frontend_edits": false
+  },
+  "live_preservation_checks": "no-wan-live-checks.json"
+}

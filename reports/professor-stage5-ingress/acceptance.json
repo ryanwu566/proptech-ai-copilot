@@ -1,0 +1,1126 @@
+{
+  "schema": "professor-stage5-direct-ingress-acceptance-v1",
+  "checked_at": "2026-10-30T09:46:04.478650+00:00",
+  "status": "PARTIAL",
+  "scope": "direct self-hosted ingress and provider migration preparation only",
+  "stage5_complete": false,
+  "ready_for_operator_ingress_apply": false,
+  "operator_apply_command": null,
+  "branch": "server/stage5-direct-ingress-20261030",
+  "base_head": "cf3a227e91c4768cce5f7870035cb848feb52611",
+  "worktree": "/home/andy/.codex/worktrees/7d59/proptech-ai-copilot",
+  "commit_reference": "the local commit containing this evidence; no self-referential HEAD field",
+  "accepted_prior_stages": {
+    "1": "COMPLETE",
+    "2": "COMPLETE",
+    "3": "COMPLETE",
+    "4_backend": "COMPLETE_OPERATOR_ACCEPTED",
+    "4_frontend": "COMPLETE_OPERATOR_ACCEPTED; no frontend files edited here"
+  },
+  "network": {
+    "cgnat": "UNKNOWN",
+    "inbound_reachability": "PENDING",
+    "inbound_reachability_confirmed": false,
+    "nat_assessment": "ROUTER_WAN_UNKNOWN",
+    "observed_public_ipv4": "140.119.55.43",
+    "public_ip_status": "PUBLIC_IP_OBSERVED",
+    "public_ipv4": "YES",
+    "public_ipv6": "NO",
+    "router_inspection_required": true,
+    "lan_ipv4": "192.168.200.215",
+    "gateway": "192.168.200.1",
+    "router_wan_ipv4": null,
+    "global_ipv6": [],
+    "ipv6_default_route": false,
+    "external_vantage_used": false,
+    "trace_first_hops": [
+      "192.168.200.1",
+      "140.119.55.254",
+      "140.119.240.254",
+      "140.119.240.230"
+    ],
+    "interpretation": "Observed outbound public IP and campus route do not prove exclusive WAN/control/inbound. CGNAT and double NAT unconfirmed.",
+    "current_nonprivileged_recheck": "network-audit-credential-closure.json"
+  },
+  "ingress": {
+    "strategy": "NGINX",
+    "installed_version": "1.28.3",
+    "http80_existing": "host nginx active; default site preserved",
+    "443_currently_free": true,
+    "prepared_edge": "separate TLS-only instance of installed nginx, upstream only127.0.0.1:8080",
+    "https_strategy": "PENDING",
+    "owned_hostname": null,
+    "public_ip_control_proven": false,
+    "certbot_installed": false,
+    "caddy_installed": false,
+    "ip_certificate_path": "possible only after public-IP control and verified Certbot webroot >=5.4, required shortlived profile and trusted CA/renewal tests",
+    "certificate_ordered": false,
+    "self_signed_production_certificate": false,
+    "public_configuration_applied": false
+  },
+  "credentials": {
+    "repository_name_audit": "PASS_ADMITTED_SOURCE_SCOPE",
+    "identifier_count": 81,
+    "protected_env_and_credential_files_opened": false,
+    "excluded_paths": [
+      ".env.example",
+      ".env.selfhost.example",
+      "frontend_next/.env.example",
+      "infra/selfhost/professor-secrets.env.example",
+      "infra/selfhost/professor-secrets.override.yml"
+    ],
+    "cloud_run_control_plane_inventory": "UNKNOWN",
+    "render_control_plane_inventory": "UNKNOWN",
+    "vercel_control_plane_inventory": "UNKNOWN",
+    "all_requested_credential_audit_scopes_complete": false,
+    "production_critical_credentials_on_professor": "PARTIAL_UNIQUE_REMOTE_DEPENDENCIES_UNPROVEN",
+    "accepted_current_profile_files": [
+      "app_database_url",
+      "usage_database_url",
+      "usage_peer_hmac_key",
+      "pilot_session_signing_key",
+      "valuation_database_url",
+      "professor_user_database_url"
+    ],
+    "current_local_profile_credentials": "PASS_PRIOR_STAGE4A_EVIDENCE",
+    "new_current_profile_credentials_required": false,
+    "new_credential_installation": false,
+    "optional_provider_admission": false,
+    "secrets_read_printed_or_included": false,
+    "retirement_approved": false,
+    "live_ci_control_plane_inventory": "UNKNOWN",
+    "current_dependency_identifier_count": 333,
+    "required_current_profile_secret_file_count": 6
+  },
+  "subsystems": [
+    {
+      "name": "network audit",
+      "status": "PASS",
+      "detail": "LAN/routes/listeners and independent outbound observations recorded"
+    },
+    {
+      "name": "inbound reachability",
+      "status": "BLOCKED",
+      "detail": "WAN/forwarding/control inspection and external443 proof absent; no assertion of CGNAT"
+    },
+    {
+      "name": "owned HTTPS identity and ACME",
+      "status": "BLOCKED",
+      "detail": "no domain/IP ownership or installed verified ACME client"
+    },
+    {
+      "name": "nginx/config/guardrail preparation",
+      "status": "PASS",
+      "detail": "templates and isolated syntax/Compose regressions pass; no host install"
+    },
+    {
+      "name": "firewall plan",
+      "status": "PASS",
+      "detail": "prepared narrow80/443 policy; actual effective rules and apply PENDING"
+    },
+    {
+      "name": "reboot plan",
+      "status": "PASS",
+      "detail": "ordering/checklist prepared; trusted DB TLS recovery source and real reboot PENDING"
+    },
+    {
+      "name": "provider credential repository inventory",
+      "status": "PASS",
+      "detail": "names only; protected paths excluded before read"
+    },
+    {
+      "name": "complete live cloud credential inventory",
+      "status": "BLOCKED",
+      "detail": "Cloud Run/Render/Vercel/GitHub Actions authenticated metadata unavailable; repository configuration references are audited only"
+    },
+    {
+      "name": "accepted private API and ML",
+      "status": "PASS",
+      "detail": "21 read-only checks and model version preservation; not external acceptance"
+    },
+    {
+      "name": "Stage4 user authority",
+      "status": "PASS",
+      "detail": "accepted Supabase identity/Professor app-data authority preserved; fresh unauthenticated denial checks pass"
+    },
+    {
+      "name": "database security/datasets",
+      "status": "PARTIAL",
+      "detail": "accepted Stage4 mounts/TLS/least privilege retained as prior evidence; fresh no-host5432 and local GIS/API checks pass, no direct Docker access"
+    },
+    {
+      "name": "public/Vercel acceptance and cloud retirement",
+      "status": "BLOCKED",
+      "detail": "planned only; no public deployment or cloud shutdown authorized"
+    }
+  ],
+  "tests": {
+    "status": "PASS",
+    "focused": {
+      "tests": 165,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "junit": "focused-tests.xml",
+    "modules": [
+      "tests/test_professor_ingress.py",
+      "tests/test_professor_ml_socket.py",
+      "tests/test_professor_stage5_audit.py",
+      "tests/test_stage3_ml_api.py",
+      "tests/test_professor_stage4a_activation.py",
+      "tests/test_selfhost_runtime.py"
+    ],
+    "existing_dependency_warning": "Starlette TestClient httpx deprecation; one warning, no failure",
+    "static": "static-validation.json",
+    "local_api": "local-runtime-checks.json",
+    "real_nginx_syntax": "PASS test-only certificate/private Unix listeners, never bound live TCP",
+    "compose": "PASS real Compose5.6.1 synthetic before/after merge; actual root host merge PENDING",
+    "independent_review": "review.json",
+    "full_suite_rerun": false,
+    "nginx_followup_regression": {
+      "tests": 2,
+      "failures": 0,
+      "detail": "all module temp paths also confined for hardened public TLS-only service"
+    },
+    "final_guardrail_regression": {
+      "tests": 64,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "credential_audit_continuation": {
+      "initial_focused": {
+        "tests": 93,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "final_changed_modules": {
+        "tests": 51,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "no_wan_final_focused": {
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "final_adoption_continuation": {
+      "focused_adoption_retirement_cli": {
+        "tests": 33,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "final_evidence_guards": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "provider_only_focused": {
+      "tests": 50,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "deployed_inventory_focused": {
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "provider_credential_workflow": {
+      "tests": 47,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "required_provider_policy": {
+      "top_level_passed": 170,
+      "subtests_passed": 28,
+      "junit_cases": 198,
+      "failures": 0
+    },
+    "provider_guard_repair": {
+      "tests": 64,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "safety": {
+    "host_firewall_router_dns_mutations": false,
+    "runtime_container_service_mutations": false,
+    "database_mutations": false,
+    "volume_mutations": false,
+    "secret_mutations": false,
+    "sudo_executed": false,
+    "forbidden_device_operations": false,
+    "x9_source_mutations": false,
+    "frontend_files_modified": false,
+    "main_next_env_sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
+    "postgres_host_listener": false,
+    "8080_loopback_only": true,
+    "8081_loopback_only": true,
+    "market_ops_enabled": false,
+    "paid_providers_enabled": false,
+    "provider_flag_basis": "accepted Stage4A configuration unchanged; no root env dump or activation performed",
+    "x9_runtime_dependency": "NONE per accepted Stage4A verified mounts; no mount changes in this task",
+    "public_cloud_changes": false,
+    "push_performed": false,
+    "cloud_retirement_performed": false
+  },
+  "prior_host_evidence": {
+    "root": "/var/backups/proptech-selfhost/stage4a-activation/20261030T040052Z-8cd21b4e0da2",
+    "sanitized": "/tmp/professor-stage4a-activation-dpf5uno4",
+    "active_api_image": "sha256:dce27b6bd9b1d336e8b15c93559642722b5e98f4c21012df4718f220ab4c0cde",
+    "stage5_docker_socket_access": false,
+    "direct_db_or_container_reinspection": false
+  },
+  "blockers": [
+    "router WAN assignment/control and approved inbound route unknown",
+    "no approved owned hostname or controlled public-IP TLS identity",
+    "effective firewall requires operator read-only review",
+    "Certbot absent; staging/trusted production issuance and renewal untested",
+    "persistent trusted PostgreSQL TLS restoration and boot sequencing unproven",
+    "ML companion still runs in terminal/session scope; prepared service not installed",
+    "actual root host Compose merge/UID socket metadata not reviewed",
+    "Cloud Run/Render/Vercel/GitHub Actions live credential name inventories incomplete",
+    "outside-LAN HTTPS, authenticated browser/Preview/Production E2E and reboot acceptance pending",
+    "controlled public installer deliberately not released"
+  ],
+  "single_next_network_instruction": "Ask gateway/network administrator to confirm WAN assignment/inbound443 authority relative to140.119.55.43 and reserve192.168.200.215; do not forward yet.",
+  "required_isp_action": "Only if WAN/CGNAT investigation shows no inbound path: public/static IPv4 or separately reviewed routable IPv6; no tunnel.",
+  "evidence_files": [
+    "adoption-acceptance.json",
+    "adoption-evidence-guard-tests.xml",
+    "adoption-final-tests.xml",
+    "adoption-retirement-plan.json",
+    "adoption-static-validation.json",
+    "cloud-retirement-dependencies.json",
+    "conditional-https-plan.json",
+    "credential-audit-closure.json",
+    "credential-closure-final-tests.xml",
+    "credential-closure-live-health.json",
+    "credential-closure-static.json",
+    "credential-closure-tests.xml",
+    "env-example-identifiers.json",
+    "final-guardrail-regression.xml",
+    "focused-tests.xml",
+    "github-read-metadata.json",
+    "local-runtime-checks.json",
+    "maintenance-activity-observation.json",
+    "network-audit-credential-closure.json",
+    "network-audit.json",
+    "nginx-final-regression.xml",
+    "no-wan-final-tests.xml",
+    "no-wan-live-checks.json",
+    "no-wan-preparation-tests.xml",
+    "no-wan-preparation.json",
+    "no-wan-static-validation.json",
+    "professor-adoption-matrix.csv",
+    "provider-dependency-matrix.csv",
+    "provider-dependency-matrix.json",
+    "provider-matrix.json",
+    "public-caller-references.json",
+    "public-ingress-dry-run.json",
+    "retirement-readiness-matrix.csv",
+    "review.json",
+    "static-validation.json",
+    "supabase-public-metadata.json",
+    "supplemental-host-observations.json",
+    "provider-cutover-acceptance.json",
+    "provider-only-static-validation.json",
+    "provider-only-focused-tests.xml",
+    "public-route-observation.json",
+    "maintenance-dispatch-history.json",
+    "cloud-run-retirement-matrix.csv",
+    "render-retirement-matrix.csv",
+    "cloud-deployed-dependency-inventory.json",
+    "cloud-component-replacement-matrix.csv",
+    "repository-history-cloud-metadata.json",
+    "scheduled-workflow-metadata.json",
+    "live-release-metadata.json",
+    "deployed-inventory-focused-tests.xml",
+    "deployed-inventory-validation.json",
+    "credential-migration-plan.json",
+    "credential-migration-matrix.csv",
+    "credential-workflow-focused-tests.xml",
+    "credential-workflow-validation.json",
+    "required-provider-migration-preparation.json",
+    "required-provider-migration-validation.json",
+    "required-provider-policy-tests.xml",
+    "provider-migration-failure-receipt.json",
+    "provider-guard-refusal-diagnosis.json",
+    "provider-guard-repair-tests.xml",
+    "provider-guard-repair-validation.json"
+  ],
+  "next": "Public HTTPS activation and Vercel E2E only after blocked gates are resolved and controlled apply reviewed",
+  "continuation_base_head": "c188d254e5d7b98f7d11006aa5c34a6e5952c811",
+  "credential_audit_continuation": {
+    "status": "PARTIAL_EXTERNAL_CONTROL_PLANE_METADATA_BLOCKED",
+    "evidence": "credential-audit-closure.json",
+    "dependency_matrix": "provider-dependency-matrix.json",
+    "csv": "provider-dependency-matrix.csv",
+    "repository_identifiers": 333,
+    "file_only_contracts": 9,
+    "required_core_files": "PASS_ACCEPTED_RECEIPT",
+    "missing_required_credentials": [],
+    "all_live_cloud_scopes_complete": false,
+    "live_cloud_scopes": {
+      "cloud_run": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+      "github_actions": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+      "render": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+      "vercel": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED"
+    },
+    "production_critical_credentials_on_server": "PARTIAL",
+    "ready_to_retire_credentials": []
+  },
+  "router_observation_template": "config/professor-router-observation.example.json",
+  "conditional_https_plan": "conditional-https-plan.json",
+  "cgnat_decision_ready": false,
+  "https_conditional_plan_ready": true,
+  "no_wan_preparation": {
+    "schema": "professor-stage5-no-wan-preparation-v1",
+    "checked_at": "2026-10-30T07:06:05.115665+00:00",
+    "status": "PARTIAL_EXTERNAL_METADATA_AND_HOST_GATES",
+    "accessible_source_preparation_complete": true,
+    "provider_credentials_audited": false,
+    "production_critical_credentials_on_server": "PARTIAL",
+    "repository_dependency_identifiers": 333,
+    "file_only_contracts": 9,
+    "four_env_examples_names_audited": true,
+    "template_name_counts": {
+      ".env.example": 21,
+      ".env.selfhost.example": 65,
+      "frontend_next/.env.example": 5,
+      "infra/selfhost/professor-secrets.env.example": 23
+    },
+    "projection_scope": "Git scans indexed allowlisted example blobs; auditor receives only anchored assignment prefixes, never RHS values",
+    "template_values_materialized": false,
+    "host_envfiles_or_private_keys_opened": false,
+    "known_current_profile_credentials": "PASS_HASH_BOUND_ACCEPTED_STAGE4A_RECEIPTS; not fresh root inspection",
+    "missing_required_credentials": [],
+    "optional_provider_store_presence": "UNKNOWN when metadata inaccessible; optional is not missing-required",
+    "ready_to_retire_credentials": [],
+    "cloud_run_dependencies_remaining": [
+      "frontend API origin and deployed callers",
+      "actual env/secret refs and IAM/ADC/provider restrictions",
+      "legacy database and user/evidence writes, backups and authority",
+      "reboot survival, TLS renewal, external acceptance and rollback",
+      "attached service identity / implicit ADC and retained revision/image metadata",
+      "Google geocoding/Places/Routes and optional Earth Engine credential consumers"
+    ],
+    "render_dependencies_remaining": [
+      "frontend API origin and deployed callers",
+      "actual env/secret refs and IAM/ADC/provider restrictions",
+      "legacy database and user/evidence writes, backups and authority",
+      "reboot survival, TLS renewal, external acceptance and rollback",
+      "three protected maintenance workflows using RENDER_API_BASE_URL",
+      "RENDER_GIT_COMMIT release metadata fallback"
+    ],
+    "render_protected_maintenance_jobs": 3,
+    "source_workflow_count": 10,
+    "git_remote_metadata": "github-read-metadata.json; remote main9cc40d6; no remote changes",
+    "github_secret_metadata_capability": "UNSUPPORTED_BY_AVAILABLE_CONNECTOR; repository/workflow metadata is not secret inventory",
+    "live_cloud_scopes": {
+      "cloud_run": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+      "github_actions": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+      "render": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+      "vercel": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED"
+    },
+    "cloud_run_render_vercel_metadata_capability": "NO_SUITABLE_AUTHENTICATED_READER",
+    "retirement_dependency_source_inventory": "PASS_SOURCE_SCOPE_ONLY",
+    "deployed_dependency_closure": false,
+    "https_plan_ready": true,
+    "waiting_only_for_router_wan": false,
+    "ready_for_operator_ingress_apply": false,
+    "operator_apply_command": null,
+    "remaining_non_wan_gates": [
+      "actual deployed credential/secret-reference inventories",
+      "fresh host metadata and trusted TLS reboot recovery source",
+      "approved ACME tooling, issuance/renewal and controlled installer",
+      "local ML service handover and maintenance-job disposition",
+      "real Preview/Production authenticated E2E and reboot acceptance"
+    ],
+    "no_wan_plans": [
+      "NGINX TLS-only edge",
+      "conditional certificate/renewal strategy",
+      "minimal firewall and admin preservation",
+      "DB TLS/secret boot ordering and ML handover",
+      "protected backup/consumer-only rollback",
+      "exact-origin Vercel Preview/Production cutover",
+      "separate local maintenance-job review"
+    ],
+    "plan_document": "docs/operations/professor-stage5/no-wan-preparation.md",
+    "retirement_inventory": "cloud-retirement-dependencies.json",
+    "tests": {
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "static_validation": "no-wan-static-validation.json",
+    "independent_review": "review.json no_wan_continuation",
+    "safety": {
+      "sudo_executed": false,
+      "public_network_changes": false,
+      "runtime_or_database_changes": false,
+      "router_firewall_dns_changes": false,
+      "provider_activation": false,
+      "paid_provider_calls": 0,
+      "cloud_retirement": false,
+      "vercel_production_changes": false,
+      "push_performed": false,
+      "dev_sda_operations": false,
+      "x9_source_mutations": false,
+      "frontend_edits": false
+    },
+    "live_preservation_checks": "no-wan-live-checks.json"
+  },
+  "waiting_only_for_router_wan": false,
+  "final_adoption_continuation": {
+    "schema": "professor-stage5-final-adoption-acceptance-v1",
+    "checked_at": "2026-10-30T07:38:38.848061+00:00",
+    "status": "PARTIAL_EXTERNAL_DEPLOYMENT_AND_HOST_EVIDENCE_BLOCKED",
+    "continuation_base_head": "e02917e8ba45bcb078922dba862439ba50c364eb",
+    "scope": "final non-network adoption/retirement preparation; no runtime activation",
+    "provider_credentials_audited": false,
+    "production_critical_credentials_on_professor": "PARTIAL",
+    "known_local_profile_six_files": "PASS_HASH_BOUND_ACCEPTED_STAGE4A_EVIDENCE_NOT_FRESH_ROOT_INSPECTION",
+    "missing_required_credentials": [],
+    "missing_scope": "no current-profile credential confirmed missing; all production-critical legacy-cloud requirements not yet known",
+    "cloud_run_dependencies_fully_inventoried": false,
+    "render_dependencies_fully_inventoried": false,
+    "provider_adoption_rows": 11,
+    "cloud_run_retirement_rows": 10,
+    "render_retirement_rows": 12,
+    "all_retirement_ready": "NO",
+    "ready_to_retire_credentials": [],
+    "tested_scope": "capability-specific saved local GIS/ML checks and accepted private DB probe; no successful authorized real-user provider flow or public cutover inferred",
+    "workflow_target_decisions": {
+      ".github/workflows/refresh-commute-snapshot.yml": "A_MOVE_TO_PROFESSOR",
+      ".github/workflows/refresh-market-read-model.yml": "A_MOVE_TO_PROFESSOR",
+      ".github/workflows/reconcile-market-coverage.yml": "A_MOVE_TO_PROFESSOR"
+    },
+    "workflow_interim_decision": "C_KEEP_EXISTING_EXTERNAL_DEFINITION_AND_ACTIVITY_UNCHANGED; no execution requested",
+    "commute_persistence_gap": "API process memory; separate one-shot cannot update API without persistent producer/loader adapter",
+    "market_write_gap": "legacy refresh deletes/replaces derived rows; serving role SELECT-only; new reviewed restricted writer/adapter required if admitted",
+    "coverage_bootstrap_local_disposition": "B_NOT_CARRIED_FORWARD_ALREADY_PROVISIONED; external definition untouched",
+    "public_caller_observation": {
+      "evidence": "public-caller-references.json",
+      "status": "PASS_REFERENCE_OBSERVATION_ONLY",
+      "release": "9cc40d645757af4513d9afdf0c008939cc489a77",
+      "observed_legacy_origin_refs": [
+        "https://proptech-earth-engine-api-712372598609.asia-east1.run.app"
+      ],
+      "scope": "deployed public code references only; no browser API trace, secret inventory or credentials"
+    },
+    "maintenance_activity": {
+      "evidence": "maintenance-activity-observation.json",
+      "sampled_runs": 50,
+      "total_runs": 1490,
+      "matching_sample_count": 0,
+      "nonuse_proven": false,
+      "per_workflow_history": "UNAVAILABLE_NOT_INFERRED_EMPTY"
+    },
+    "actual_cloud_run_metadata_still_required": [
+      "actual env/secret-reference names",
+      "attached service-account identity and ADC source",
+      "effective IAM roles/API restrictions",
+      "deployed callers and scheduled/background consumers",
+      "retained revisions and rollback identity"
+    ],
+    "actual_render_metadata_still_required": [
+      "actual env/group/file names",
+      "deployed callers and current service identity",
+      "three workflow activity/disposition and validation",
+      "unique mutable state and rollback"
+    ],
+    "evidence_request": {
+      "channel": "asynchronous user input",
+      "request": "paths to readable sanitized names-only exports, never credential values",
+      "response_received": false,
+      "elapsed_time_not_treated_as_approval_or_evidence": true
+    },
+    "privileged_installation_required_now": false,
+    "operator_installation_command": null,
+    "no_speculative_privileged_scripts": "no missing current-profile secret; optional adapters/roles must be reviewed and admitted before a concrete installer",
+    "https_plan_ready": true,
+    "waiting_only_for_router_wan": false,
+    "ready_for_operator_ingress_apply": false,
+    "retirement_blockers": [
+      "outside-LAN trusted Professor HTTPS",
+      "Vercel Preview and Production authenticated E2E",
+      "profile/saved-case ownership and persistence",
+      "ML/GIS/Market/Valuation accepted behavior",
+      "all required credential dependencies adopted",
+      "reboot and renewal acceptance",
+      "no unique remote state/caller remains",
+      "explicit retirement approval"
+    ],
+    "tests": {
+      "focused_adoption_retirement_cli": {
+        "tests": 33,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "final_evidence_guards": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "static_validation": "adoption-static-validation.json",
+    "independent_review": "review.json final_adoption_continuation",
+    "matrix_files": [
+      "adoption-retirement-plan.json",
+      "retirement-readiness-matrix.csv",
+      "professor-adoption-matrix.csv"
+    ],
+    "safety": {
+      "sudo_executed": false,
+      "router_wan_firewall_dns_listener_changes": false,
+      "runtime_database_or_volume_changes": false,
+      "vercel_cloud_run_render_changes": false,
+      "provider_activation": false,
+      "paid_provider_calls": 0,
+      "credential_values_exposed": false,
+      "dev_sda_operations": false,
+      "x9_mutations": false,
+      "frontend_edits": false,
+      "push_performed": false
+    }
+  },
+  "provider_only_continuation": {
+    "schema": "professor-stage5-provider-only-closeout-v1",
+    "checked_at": "2026-10-30T07:59:47.638970+00:00",
+    "base_commit": "f05d079bbef624df4f9980cb861223aea0647427",
+    "scope": "provider names, Cloud Run/Render dependencies, adoption/retirement and cutover evidence only; hardening owned by parallel session",
+    "status": "PARTIAL_DEPLOYED_METADATA_UNAVAILABLE",
+    "provider_credentials_audited": false,
+    "production_critical_credentials_on_professor": "PARTIAL",
+    "known_current_profile_credential_status": "PASS_ACCEPTED_STAGE4A_NOT_FRESH_INSPECTION",
+    "required_current_profile_secret_files": [
+      "app_database_url",
+      "pilot_session_signing_key",
+      "professor_user_database_url",
+      "usage_database_url",
+      "usage_peer_hmac_key",
+      "valuation_database_url"
+    ],
+    "missing_required_credentials": [],
+    "missing_scope": "No current-profile credential confirmed missing; unique production cloud dependencies cannot be ruled out without deployed metadata.",
+    "repository_identifier_count": 333,
+    "credential_subset_count": 83,
+    "file_only_contracts": 9,
+    "classifications": [
+      "LEGACY_CLOUD_ONLY",
+      "PROFESSOR_SERVER_ACTIVE",
+      "PROFESSOR_SERVER_OPTIONAL",
+      "UNKNOWN",
+      "VERCEL_BROWSER_PUBLIC"
+    ],
+    "cloud_run_dependencies_fully_inventoried": false,
+    "render_dependencies_fully_inventoried": false,
+    "referenced_services": {
+      "cloud_run": {
+        "name": "proptech-earth-engine-api",
+        "universe_complete": false,
+        "public_route_count": 109,
+        "public_observation": "public-route-observation.json",
+        "actual_secret_names": "UNKNOWN",
+        "service_account_adc_iam": "UNKNOWN",
+        "current_retained_revisions": "UNKNOWN",
+        "callers_jobs_unique_state": "UNKNOWN",
+        "retirement_matrix": "cloud-run-retirement-matrix.csv"
+      },
+      "render": {
+        "name": "proptech-ai-copilot-api",
+        "universe_complete": false,
+        "public_network_observation": "UNAVAILABLE_NOT_ABSENT",
+        "actual_secret_groups_file_names": "UNKNOWN",
+        "current_retained_deploys": "UNKNOWN",
+        "other_callers_jobs_unique_state": "UNKNOWN",
+        "retirement_matrix": "render-retirement-matrix.csv"
+      }
+    },
+    "maintenance_workflows": [
+      {
+        "workflow": ".github/workflows/reconcile-market-coverage.yml",
+        "visible_manual_run_count": 13,
+        "latest_visible_run": {
+          "workflow": ".github/workflows/reconcile-market-coverage.yml",
+          "workflow_id": 305200371,
+          "run_id": 30200155886,
+          "head_sha": "e151a490701d26ebe2ce802133890b7aa70da79b",
+          "event": "workflow_dispatch",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-07-26T11:27:28Z",
+          "updated_at": "2026-07-26T11:32:22Z",
+          "run_attempt": 1
+        }
+      },
+      {
+        "workflow": ".github/workflows/refresh-market-read-model.yml",
+        "visible_manual_run_count": 7,
+        "latest_visible_run": {
+          "workflow": ".github/workflows/refresh-market-read-model.yml",
+          "workflow_id": 304118316,
+          "run_id": 28426073703,
+          "head_sha": "ac7725fd2cb66f3918d119c986221d022f97e51e",
+          "event": "workflow_dispatch",
+          "status": "completed",
+          "conclusion": "failure",
+          "created_at": "2026-06-30T06:53:58Z",
+          "updated_at": "2026-06-30T06:54:17Z",
+          "run_attempt": 1
+        }
+      },
+      {
+        "workflow": ".github/workflows/refresh-commute-snapshot.yml",
+        "visible_manual_run_count": 1,
+        "latest_visible_run": {
+          "workflow": ".github/workflows/refresh-commute-snapshot.yml",
+          "workflow_id": 303801387,
+          "run_id": 28345058812,
+          "head_sha": "592f80a6a3fa8486bb3ca25d400f911646c4f353",
+          "event": "workflow_dispatch",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-06-29T02:35:09Z",
+          "updated_at": "2026-06-29T02:35:19Z",
+          "run_attempt": 1
+        }
+      }
+    ],
+    "manual_run_history_scope": {
+      "query_event": "workflow_dispatch",
+      "visible_total": 21,
+      "returned": 21,
+      "query_complete": true,
+      "deleted_or_inaccessible_history_proven": false,
+      "current_activation_proven": false,
+      "current_secret_presence_proven": false,
+      "future_activity_proven": false
+    },
+    "workflow_disposition": {
+      "target": "A_MOVE_TO_PROFESSOR_IF_RETAINED",
+      "interim": "C_EXISTING_REMOTE_DEFINITION_AND_ACTIVITY_UNCHANGED",
+      "whole_workflow_retired": false,
+      "local_coverage_bootstrap": "B_NOT_CARRIED_FORWARD_ALREADY_PROVISIONED",
+      "manual_cadence_preserved": true,
+      "local_jobs_installed": false,
+      "public_api_retarget_allowed": false
+    },
+    "provider_adoption_matrix": "professor-adoption-matrix.csv",
+    "full_names_matrix": "provider-dependency-matrix.json",
+    "credential_adoption_procedure": "docs/operations/professor-stage5/credential-evidence-collection.md",
+    "cutover_checklist": "docs/operations/professor-stage5/provider-cutover-dependencies.md",
+    "receipts_required": [
+      "CR-SERVICES",
+      "CR-NAMES",
+      "CR-IDENTITY",
+      "CR-CALLERS",
+      "RENDER-SERVICES",
+      "RENDER-NAMES",
+      "RENDER-CALLERS",
+      "FRONTEND-CI",
+      "STATE-ROLLBACK"
+    ],
+    "live_name_scopes": {
+      "cloud_run": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+      "github_actions": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+      "render": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+      "vercel": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED"
+    },
+    "no_missing_required_file_confirmed": true,
+    "operator_secret_installation_required_now": false,
+    "operator_installation_command": null,
+    "ready_to_retire_credentials": [],
+    "retirement_allowed": false,
+    "credentials_ready_for_cutover": false,
+    "waiting_only_for_hardening_wan": false,
+    "external_metadata_access": {
+      "gcloud_render_vercel_gh_cli_available": false,
+      "authenticated_cloud_run_render_vercel_connector_available": false,
+      "github_secret_api_supported": false,
+      "github_public_run_metadata_available": true
+    },
+    "hardening_implementation_modified": false,
+    "safety": {
+      "secret_values_opened": false,
+      "secret_values_exported": false,
+      "sudo_executed": false,
+      "runtime_database_or_volume_changes": false,
+      "nginx_firewall_router_wan_dns_listener_changes": false,
+      "cloud_or_vercel_changes": false,
+      "workflow_runs_dispatched": false,
+      "optional_or_paid_provider_activation": false,
+      "paid_provider_calls": 0,
+      "frontend_edits": false,
+      "dev_sda_operations": false,
+      "x9_mutations": false,
+      "push_performed": false
+    },
+    "verification": {
+      "tests": {
+        "tests": 50,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "test_report": "provider-only-focused-tests.xml",
+      "static": "PASS",
+      "literal_scan": "PASS_KNOWN_FORMATS_NO_INSTALLED_VALUE_COMPARISON",
+      "independent_review": {
+        "status": "PASS_PREPARATION_ONLY",
+        "reviewer": "stage5_security_review",
+        "remaining_critical_findings": 0,
+        "remaining_important_findings": 0,
+        "scope": "provider docs/evidence and retirement scope; no live runtime, secret, or hardening implementation review",
+        "test_results_reviewed_by_reviewer": false
+      }
+    },
+    "next_operator_metadata_action": "Provide paths to sanitized names-only control-plane, identity, caller and state receipts; no credentials."
+  },
+  "waiting_only_for_hardening_wan": false,
+  "deployed_cloud_inventory_continuation": {
+    "schema": "professor-stage5-deployed-inventory-acceptance-v1",
+    "base_head": "8164242bc99fbe4d4a4298554c53de652becbc44",
+    "scope": "names-only provider/cloud metadata and retirement preparation; no runtime/hardening changes",
+    "cloud_run_live_inventory": "PARTIAL",
+    "render_live_inventory": "BLOCKED",
+    "provider_credentials_audited": false,
+    "production_critical_credentials_on_professor": "PARTIAL",
+    "missing_required_credentials": [],
+    "evidence_levels": [
+      "VERIFIED_LIVE",
+      "VERIFIED_REPO",
+      "HISTORICAL_ONLY",
+      "UNKNOWN"
+    ],
+    "field_inventory": "cloud-deployed-dependency-inventory.json",
+    "replacement_matrix": "cloud-component-replacement-matrix.csv",
+    "replacement_rows": 25,
+    "new_facts": [
+      "documented Earth Engine service identity/project, actual attachment/IAM unknown",
+      "historical Render release identity, current unavailable",
+      "Cloud Run current public release identity unconfigured",
+      "all374API-visible scheduled runs and three source-matching scheduled consumers",
+      "PLVR scheduled notice is not an import; no provider/secret proof inferred"
+    ],
+    "criticality_scope": "current-profile six files accepted; no unknown or optional cloud credential declared critical without retained-consumer evidence",
+    "eventual_retirement_groups": 8,
+    "ready_to_retire_now": [],
+    "credentials_ready_for_cutover": false,
+    "retirement_allowed": false,
+    "unknown_cloud_dependencies": [
+      "actual service/job universe and regions",
+      "live env/secret/group/file names",
+      "attached identity/ADC/IAM",
+      "current/retained revisions/images/traffic",
+      "native schedulers/background callers",
+      "all deployed caller/unique-state dependencies"
+    ],
+    "metadata_access": "no installed supported CLI or available authenticated control-plane inventory reader; no credential/auth store contents accessed",
+    "tests": {
+      "schema": "professor-stage5-deployed-inventory-validation-v1",
+      "status": "PASS",
+      "focused_tests": {
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "field_evidence_classes": "PASS",
+      "source_hashes": 11,
+      "repository_not_promoted_to_live": "PASS",
+      "csv_rows": 25,
+      "retirement_ready_rows": 0,
+      "scheduled_event_scope": "PASS_374_API_VISIBLE_ONLY",
+      "literal_scanner": "PASS_KNOWN_FORMATS_NO_INSTALLED_SECRET_COMPARISON",
+      "only_provider_docs_and_reports_changed": true,
+      "main_next_env_preserved": true,
+      "runtime_cloud_database_network_mutations": false,
+      "independent_review": "PASS_PREPARATION_ONLY"
+    },
+    "independent_review": {
+      "status": "PASS_PREPARATION_ONLY",
+      "reviewer": "stage5_security_review",
+      "remaining_critical_findings": 0,
+      "remaining_important_findings": 0,
+      "scope": [
+        "per-field live/repository/historical/unknown boundaries",
+        "scheduled outcomes not credential/provider/import proof",
+        "25 replacement rows with no remote cutover",
+        "eight conditional retirement groups none ready",
+        "unknown production criticality remains unasserted"
+      ],
+      "reviewer_live_or_secret_or_hardening_access": false,
+      "tests_run_by_reviewer": false
+    },
+    "operator_metadata_needed": "Names-only services/revisions, credential references, identities/IAM, callers/jobs, and unique-state receipts."
+  },
+  "credential_migration_workflow": {
+    "schema": "professor-provider-workflow-acceptance-v1",
+    "status": "READY_CURRENT_EMPTY_INSTALL_SET_CLOUD_DEPENDENCIES_STILL_UNKNOWN",
+    "source_base_head": "803788f3eaa7cdacba979935225bdadea1abe727",
+    "classification_matrix": "credential-migration-matrix.csv",
+    "migration_plan": "credential-migration-plan.json",
+    "environment_config_count": 333,
+    "file_contract_count": 9,
+    "classifications": {
+      "ALREADY_ON_PROFESSOR_SERVER": 12,
+      "BROWSER_PUBLIC_ON_VERCEL": 9,
+      "LEGACY_CLOUD_ONLY": 18,
+      "OPTIONAL_NOT_ENABLED": 203,
+      "UNKNOWN_LIVE_METADATA": 100
+    },
+    "missing_required_credentials": [],
+    "missing_scope": "none confirmed for accepted local profile; unknown cloud dependencies are not assumed absent",
+    "cloud_credentials_ready_to_retire": [],
+    "operator_installer_ready": true,
+    "operator_command": null,
+    "current_required_count": 0,
+    "operator_script": "scripts/ops/professor_provider_credentials.py",
+    "fixed_plan": "config/professor-provider-install.plan.json",
+    "operator_runbook": "docs/operations/professor-stage5/provider-credential-installation.md",
+    "operator_installation_executed": false,
+    "plan_only_check": "PASS_NONPRIVILEGED_NO_SECRET_ACCESS",
+    "validation": {
+      "schema": "professor-provider-credential-workflow-validation-v1",
+      "status": "PASS",
+      "python_ast": "PASS",
+      "migration_rows": 342,
+      "classification_scope": "accepted metadata/current profile and unknown cloud scope kept separate",
+      "missing_required": [],
+      "checked_in_install_set_empty": true,
+      "focused_tests": {
+        "tests": 47,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "synthetic_only_installation_tests": true,
+      "real_operator_installation_executed": false,
+      "literal_scan": "PASS_KNOWN_FORMATS_NO_SECRET_CONTENTS",
+      "frontend_preserved": true,
+      "activation_or_provider_calls": false,
+      "full_suite_run": false,
+      "independent_review": {
+        "status": "PASS_PREPARATION_ONLY",
+        "reviewer": "stage5_security_review",
+        "remaining_critical_findings": 0,
+        "remaining_important_findings": 0,
+        "resolved_finding": "ALREADY requires accepted exact six-file proof and matching per-row membership; missing/unverified contradictions refused",
+        "regressions": "five absent/failed/incomplete receipt cases plus two contradictory state cases; RED/GREEN verified",
+        "installer_scope": "canonical missing-required stored-only; empty no-op; no activation",
+        "reviewer_privileged_runtime_secret_access": false
+      },
+      "installer_script_sha256": "c6cfcd4f176a4e234fb17fdbbf8dfc3ed68e27dc2fa88a7c0ff0128b344dfad1",
+      "install_plan_sha256": "37bc090de7cad08c28aa22029b23bba9fb6776edf4f8b0f107b5887d7f72e23b",
+      "classification_rebuild_matches_artifact": true
+    },
+    "independent_review": {
+      "status": "PASS_PREPARATION_ONLY",
+      "reviewer": "stage5_security_review",
+      "remaining_critical_findings": 0,
+      "remaining_important_findings": 0,
+      "resolved_finding": "ALREADY requires accepted exact six-file proof and matching per-row membership; missing/unverified contradictions refused",
+      "regressions": "five absent/failed/incomplete receipt cases plus two contradictory state cases; RED/GREEN verified",
+      "installer_scope": "canonical missing-required stored-only; empty no-op; no activation",
+      "reviewer_privileged_runtime_secret_access": false
+    },
+    "guardrails": [
+      "canonical reviewed missing-required backend names only",
+      "no overwrite or generation",
+      "protected core recovery only",
+      "all targets absent before input; all values validated before writes",
+      "root-owned0700 store/root:root0600 files through existing Stage2 primitives",
+      "no stage/mount/image/provider/runtime activation",
+      "Stage4 user-DB recovery fails closed for separate review"
+    ],
+    "runtime_or_network_or_cloud_modifications": false,
+    "secret_values_read_or_exposed": false,
+    "frontend_modified": false,
+    "push_performed": false,
+    "superseded_by_required_provider_policy": true
+  },
+  "required_provider_storage_policy": {
+    "schema": "professor-required-provider-policy-acceptance-v1",
+    "status": "READY_FOR_OPERATOR_RETRY_NOT_INSTALLED",
+    "policy_change": "all listed backend provider credentials required while disabled",
+    "preparation_evidence": "required-provider-migration-preparation.json",
+    "required_secret_files": 9,
+    "public_settings": 4,
+    "provider_groups": 6,
+    "existing_core_runtime_material": "PRESERVE_VALIDATED_STAGE2_STAGE4",
+    "metadata_access_scope": "unprivileged provider-store metadata inaccessible; no actual file absence claimed",
+    "operator_installer_ready": true,
+    "operator_command": "sudo python3 -B /home/andy/.codex/worktrees/7d59/proptech-ai-copilot/scripts/ops/professor_provider_credentials.py --migrate-all",
+    "operator_migration_executed": false,
+    "host_probes_executed": false,
+    "provider_functional_tests": "NOT_RUN",
+    "paid_activation": false,
+    "runtime_recreation": false,
+    "credentials_ready_to_retire": [],
+    "validation": {
+      "schema": "professor-required-provider-preparation-validation-v1",
+      "status": "PASS",
+      "focused_tests": {
+        "tests": 198,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "python_ast": "PASS",
+      "known_format_literal_scan": "PASS_NO_ACTUAL_SECRET_COMPARISON",
+      "required_secret_files": 9,
+      "public_config_files": 4,
+      "isolated_group_profiles": 6,
+      "policy_json_matches_implementation": true,
+      "current_filesystem_unknown_not_claimed_absent": true,
+      "operator_migration_executed": false,
+      "host_ephemeral_probes_executed": false,
+      "provider_functional_tests": "NOT_RUN",
+      "independent_review": {
+        "status": "PASS_PREPARATION_ONLY",
+        "reviewer": "stage5_security_review",
+        "remaining_critical_findings": 0,
+        "remaining_important_findings": 0,
+        "resolved_findings": [
+          "ancestor/descendant and legacy-flat live mounts blocked",
+          "all existing targets compared during write and final original-value verification after probes",
+          "public config kept outside Stage2 secret scan inventory"
+        ],
+        "reviewer_live_or_credential_or_root_access": false,
+        "final_lock_parent_review": "PASS_NO_IMPORTANT_FINDINGS"
+      },
+      "main_next_env_preserved": true,
+      "nginx_firewall_wan_router_dns_vercel_database_changes": false,
+      "source_files": {
+        "scripts/ops/professor_provider_storage.py": "ef4b6541d7f89e7e166b6d307703550310b4bc2739aeca2fbf6028c141b8932d",
+        "scripts/ops/professor_provider_credentials.py": "1ded81c6f0dd856c90ba2a9280cfb841a86686e6d639398a4e49512bf9ff95d7",
+        "config/professor-required-provider-storage.json": "0797021d6c1965577dd0dec7d580a8bd070022b820d08f882cd1ac83a4ae8419",
+        "config/professor-server-credentials.json": "b9cb0ef8cc998e8b13053284a49e2bde72ffc985132d9551fa50e6e74b90480d"
+      },
+      "pytest_summary": {
+        "top_level_passed": 170,
+        "subtests_passed": 28,
+        "junit_cases": 198
+      },
+      "post_lock_parent_pinning_regression": "30 required-provider tests PASS",
+      "provider_guard_repair": {
+        "schema": "professor-provider-guard-repair-validation-v1",
+        "status": "PASS",
+        "focused_tests": {
+          "tests": 64,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "red_green": "accepted issuer-only profile reproduced original provider_guard_unavailable before repair; all six profile cases pass after repair",
+        "python_ast": "PASS",
+        "migration_retried": false,
+        "provider_calls": 0,
+        "real_secret_values_read": false,
+        "independent_review": {
+          "status": "PASS_PREPARATION_ONLY",
+          "reviewer": "stage5_security_review",
+          "remaining_critical_findings": 0,
+          "remaining_important_findings": 0,
+          "scope": "optional legacy alias compatibility only; exact issuer/audience, conflicting alias and mandatory disable guards remain fail-closed",
+          "historical_cause_precision": "generic original receipt does not identify the field; accepted-profile compatibility failure reproduced",
+          "actual_provider_sources_discovered": false,
+          "operator_retry_workflow_appropriate_with_private_inputs": true,
+          "tests_or_privileged_operations_run_by_reviewer": false
+        },
+        "source_sha256": "ef4b6541d7f89e7e166b6d307703550310b4bc2739aeca2fbf6028c141b8932d"
+      }
+    }
+  },
+  "provider_guard_refusal_repair": {
+    "diagnosis": "provider-guard-refusal-diagnosis.json",
+    "validation": {
+      "schema": "professor-provider-guard-repair-validation-v1",
+      "status": "PASS",
+      "focused_tests": {
+        "tests": 64,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "red_green": "accepted issuer-only profile reproduced original provider_guard_unavailable before repair; all six profile cases pass after repair",
+      "python_ast": "PASS",
+      "migration_retried": false,
+      "provider_calls": 0,
+      "real_secret_values_read": false,
+      "independent_review": {
+        "status": "PASS_PREPARATION_ONLY",
+        "reviewer": "stage5_security_review",
+        "remaining_critical_findings": 0,
+        "remaining_important_findings": 0,
+        "scope": "optional legacy alias compatibility only; exact issuer/audience, conflicting alias and mandatory disable guards remain fail-closed",
+        "historical_cause_precision": "generic original receipt does not identify the field; accepted-profile compatibility failure reproduced",
+        "actual_provider_sources_discovered": false,
+        "operator_retry_workflow_appropriate_with_private_inputs": true,
+        "tests_or_privileged_operations_run_by_reviewer": false
+      },
+      "source_sha256": "ef4b6541d7f89e7e166b6d307703550310b4bc2739aeca2fbf6028c141b8932d"
+    },
+    "status": "READY_FOR_OPERATOR_INPUT_WORKFLOW_RETRY_NOT_MIGRATED",
+    "actual_refusal_code": "provider_guard_unavailable",
+    "migration_rerun": false,
+    "provider_sources_discovered": false,
+    "operator_input_required": true,
+    "operator_command": "sudo python3 -B /home/andy/.codex/worktrees/7d59/proptech-ai-copilot/scripts/ops/professor_provider_credentials.py --migrate-all"
+  },
+  "earth_engine_keyless_auth": {
+    "status": "PASS_PREPARED_NOT_INSTALLED_OR_ACTIVE",
+    "strategy": "ADC_IMPERSONATION",
+    "receipt": "earth-engine-keyless-auth.json",
+    "organization_policy_preserved": true,
+    "service_account_private_keys_allowed": false,
+    "existing_adapter_compatible": true,
+    "installer_updated": true,
+    "provider_restore_hook_prepared": true,
+    "credential_migration_or_activation_performed": false,
+    "live_iam_and_unattended_acceptance": "PENDING",
+    "real_reboot": "NOT_RUN",
+    "operator_auth_command": null
+  },
+  "independent_provider_migration": {
+    "status": "PASS_PREPARED_NOT_INSTALLED_OR_ACTIVE",
+    "scope": "operator credential storage and offline validation only",
+    "provider_selector": "--provider",
+    "provider_restore_selector": "--stage-provider",
+    "google": "READY_PREPARATION_ONLY",
+    "tgos": "READY_PREPARATION_ONLY",
+    "tdx": "READY_PREPARATION_ONLY",
+    "r2": "READY_PREPARATION_ONLY",
+    "openai": "READY_PREPARATION_ONLY",
+    "earth_engine_code": "READY_KEYLESS_ADC",
+    "earth_engine_iam": "PENDING_IAM",
+    "earth_engine_blocks_other_providers": false,
+    "supabase_authority_changed": false,
+    "credential_installation_executed": false,
+    "paid_provider_calls": 0,
+    "runtime_activation_performed": false,
+    "functional_provider_acceptance": "NOT_RUN",
+    "google_key_restrictions": "OPERATOR_REPORTED_NOT_INDEPENDENTLY_VERIFIED",
+    "runbook": "docs/operations/professor-stage5/independent-provider-installation.md",
+    "receipt": "independent-provider-migration.json",
+    "focused_tests_passed": 287,
+    "independent_security_review": "PASS"
+  }
+}

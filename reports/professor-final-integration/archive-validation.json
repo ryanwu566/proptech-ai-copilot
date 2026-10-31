@@ -1,0 +1,355 @@
+{
+  "evidence_class": "source_reference_only",
+  "liquefaction": [
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺北/低潛勢.geojson",
+      "sha256": "c033abc364fee8c2a6ea821c1da8cdd82273f857ec1b7c07c3a87b107303a607",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺北/中潛勢.geojson",
+      "sha256": "e1bda01804906d41d9303cd339109cd5c513b3a1879661a903ad173c34e13600",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺北/高潛勢.geojson",
+      "sha256": "119f110becaad38edd1ac9856f3741c371953a808b4f3be2945992ded0b07703",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/新竹/低潛勢.geojson",
+      "sha256": "3c9eae5de866eeac5d0f979c650f598f87689375339da5bf2e953db073cc5619",
+      "hash_matches": true,
+      "features": 3,
+      "declared_features": 3,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/新竹/中潛勢.geojson",
+      "sha256": "884262a8057af7f906af93497d4bd61cd5306c16381dd3b0b467a7130a1d4aa7",
+      "hash_matches": true,
+      "features": 16,
+      "declared_features": 16,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/新竹/高潛勢.geojson",
+      "sha256": "7620e5220183ea186b33726660b6e6905b1aec9c4b2074264825f0eda08c0a79",
+      "hash_matches": true,
+      "features": 4,
+      "declared_features": 4,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺中/低潛勢.geojson",
+      "sha256": "ea1c34f00f52a84ed23a37de103cd6aab4c3f0f5d348a4db19553507202f126a",
+      "hash_matches": true,
+      "features": 9,
+      "declared_features": 9,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺中/中潛勢.geojson",
+      "sha256": "d615d3f96f912b2c912090d1334e634e36c0be131803e8cf27a999ade66bae5a",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺中/高潛勢.geojson",
+      "sha256": "f2d6e5977fec4710935472cd3aa97e9ab85c5d4dde25d22359e28d6fea6d675f",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/彰化/低潛勢.geojson",
+      "sha256": "d522007b64406f38a124607c5d3152055646d642ada0f8112526d1a3a41491bc",
+      "hash_matches": true,
+      "features": 4,
+      "declared_features": 4,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/彰化/中潛勢.geojson",
+      "sha256": "d1e32a4028cab5fca014cdaec25e8893a7dc50ee0cccdb5238e31e78733d3900",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/彰化/高潛勢.geojson",
+      "sha256": "4b8835dc574e96c6cce9864e06d51f320ee4bb9342ffdde03ab55b4dd78c57dd",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/雲林/低潛勢.geojson",
+      "sha256": "e314683cd318bac0830661cb3b4f84334423f7ab78997e0e8c55fef367aaf912",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/雲林/中潛勢.geojson",
+      "sha256": "c2816b60699d82bd003e5c71d9d56fe441efc359fedf9f0ca64bf13564503e0a",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/雲林/高潛勢.geojson",
+      "sha256": "a4496d524b6a3d615e1d1586ceadbb3f7b14eed08f159eb6ff4a3d618fbc9185",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/嘉義/低潛勢.geojson",
+      "sha256": "9e727f319c18769559a8102307e197e6ed6decadc8629740809c43fafbca9603",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/嘉義/中潛勢.geojson",
+      "sha256": "38caf877fb150733fdfadf0248d5fff1744c2b39aa31a4a4d4d65399c30c2967",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/嘉義/高潛勢.geojson",
+      "sha256": "4b3f7043dd0d34df1e978143791e96249294561b0ab99bedb8ad5d94e569b3ab",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺南/低潛勢.geojson",
+      "sha256": "836c7b70740b5b4a4a7e95bacf9cc0b6d2da314c0e4e5fc1fc2c5faa3c3fdddc",
+      "hash_matches": true,
+      "features": 15,
+      "declared_features": 15,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺南/中潛勢.geojson",
+      "sha256": "c0b1c1b0a80566029dcd61f634493b13bab9e48dc71442dd3fac176c71bb27b8",
+      "hash_matches": true,
+      "features": 20,
+      "declared_features": 20,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺南/高潛勢.geojson",
+      "sha256": "cc1d3129c54d70adc7b04baa17e8f4f5aa7119c7d4b8ea2fcca5ccd17bcd5974",
+      "hash_matches": true,
+      "features": 10,
+      "declared_features": 10,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/高雄/低潛勢.geojson",
+      "sha256": "ecbde3bc7b874a18d59d7556da5ef1e8ea6560ecb3519f2cbb209aa882c8a5ea",
+      "hash_matches": true,
+      "features": 21,
+      "declared_features": 21,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/高雄/中潛勢.geojson",
+      "sha256": "dc3431308c97e1b7033be174b37160b7a2f0914b920669ab695cef48627e0222",
+      "hash_matches": true,
+      "features": 2,
+      "declared_features": 2,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/高雄/高潛勢.geojson",
+      "sha256": "21f62a34332e3abdea54f24d338778d5dc124d5e3d3c6d4b2c9d55ff1dc8a04d",
+      "hash_matches": true,
+      "features": 2,
+      "declared_features": 2,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/屏東/低潛勢.geojson",
+      "sha256": "ab4a4ac4d00fb6f47baa7438fb0437c6aa44f2ef64c35ccb76dd91da68995b43",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/屏東/中潛勢.geojson",
+      "sha256": "100e1c7d763a7fb98770398ce51a5a11973419a325f22082487fb96530f673ed",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/屏東/高潛勢.geojson",
+      "sha256": "c2fef2745d4e71b7697dba550e77f218eb04fad1e35164e407135ae0c6c00ec8",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/恆春半島/低潛勢.geojson",
+      "sha256": "18015676d3c3affd4b6dadde9e17f7ab992ba034e394364eb9c09e2690d03d4b",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/恆春半島/中潛勢.geojson",
+      "sha256": "22a9859a9e8f1e8d8ab25272d9abfeec87afdf5ce8b9a0a31e942ab71774b73c",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/恆春半島/高潛勢.geojson",
+      "sha256": "bde19b211a5111c115fb1ff4e33b5dda5d68524f98c313713dbfe6f00a216d64",
+      "hash_matches": false,
+      "features": 0,
+      "declared_features": 0,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/宜蘭/低潛勢.geojson",
+      "sha256": "25a98572538f83a416ce6b2e0aa37062e6467975e63a6a23a079451c0ec7aac0",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/宜蘭/中潛勢.geojson",
+      "sha256": "fdf64346e3dccfcd48a745328cbd2d242ae2782aa7390296a90e2eba0ce4d53b",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/宜蘭/高潛勢.geojson",
+      "sha256": "bedf2312837043c1b9d65818c978d07230dbbfdeaa2e8906f06011cb084bb3e6",
+      "hash_matches": true,
+      "features": 1,
+      "declared_features": 1,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/花蓮/低潛勢.geojson",
+      "sha256": "86bb4c51721523625538e39c827879358124831bb5ddd56d34f4b484ffa4cc32",
+      "hash_matches": true,
+      "features": 9,
+      "declared_features": 9,
+      "all_valid": false,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/花蓮/中潛勢.geojson",
+      "sha256": "b157af759cd4145ae532abda996c42697fec66a989b7d40d26e1f83f54f0a2e5",
+      "hash_matches": true,
+      "features": 13,
+      "declared_features": 13,
+      "all_valid": true,
+      "api_query_keys": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/花蓮/高潛勢.geojson",
+      "sha256": "4f7427033ad7f74882b94a978dcc4183a7bef7415a8becb1e04e9473ad6ee68a",
+      "hash_matches": true,
+      "features": 3,
+      "declared_features": 3,
+      "all_valid": true,
+      "api_query_keys": []
+    }
+  ],
+  "cwa_current": [
+    {
+      "file": "CWA 地震/01_current_snapshot/significant_felt_earthquake.json",
+      "sha256": "bdf0ca65a169cc63ea77e83bfb546d280144ed5727bab82439d583ee9d10992b",
+      "hash_matches": true,
+      "bytes": 417084,
+      "json_root_keys": [
+        "success",
+        "result",
+        "records"
+      ],
+      "success": "true"
+    },
+    {
+      "file": "CWA 地震/01_current_snapshot/local_felt_earthquake.json",
+      "sha256": "39756dd25ed8f3d0bed8b304dbf54652c6b72f9222db374d0d106362db2cc398",
+      "hash_matches": true,
+      "bytes": 81634,
+      "json_root_keys": [
+        "success",
+        "result",
+        "records"
+      ],
+      "success": "true"
+    }
+  ]
+}

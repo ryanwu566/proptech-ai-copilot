@@ -192,6 +192,7 @@ def test_manager_owns_exactly_two_worker_slots_and_never_starts_a_third() -> Non
 
 
 def test_physical_generation_metric_counts_worker_dispatch_not_startup(monkeypatch) -> None:
+    monkeypatch.setenv("SATELLITE_REFERENCE_PROVIDER", "earth_engine")
     from services.provider_cost_metrics import PROVIDER_COST_METRICS
 
     manager = worker_pool.EarthEngineWorkerManager(worker_target=_successful_worker,

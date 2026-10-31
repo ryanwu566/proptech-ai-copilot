@@ -1,0 +1,101 @@
+{
+  "schema": "professor-stage5-private-regression-v1",
+  "checked_at": "2026-10-30T06:02:48.609113+00:00",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "ml_companion_health",
+      "status": "PASS"
+    },
+    {
+      "name": "ml_pinned_status",
+      "status": "PASS"
+    },
+    {
+      "name": "ml_estimate_honest_support",
+      "status": "PASS"
+    },
+    {
+      "name": "session_missing_auth",
+      "status": "PASS",
+      "http_status": 401
+    },
+    {
+      "name": "profile_missing_auth",
+      "status": "PASS",
+      "http_status": 401
+    },
+    {
+      "name": "saved_cases_missing_auth",
+      "status": "PASS",
+      "http_status": 401
+    },
+    {
+      "name": "health",
+      "status": "PASS"
+    },
+    {
+      "name": "readiness",
+      "status": "PASS"
+    },
+    {
+      "name": "demographics_village",
+      "status": "PASS"
+    },
+    {
+      "name": "demographics_location",
+      "status": "PASS"
+    },
+    {
+      "name": "valuation_status",
+      "status": "PASS"
+    },
+    {
+      "name": "valuation_estimate",
+      "status": "PASS"
+    },
+    {
+      "name": "valuation_trend",
+      "status": "PASS"
+    },
+    {
+      "name": "finder",
+      "status": "PASS"
+    },
+    {
+      "name": "market",
+      "status": "PASS"
+    },
+    {
+      "name": "market_known_special_period",
+      "status": "PASS"
+    },
+    {
+      "name": "wra_matched",
+      "status": "PASS"
+    },
+    {
+      "name": "wra_no_match",
+      "status": "PASS"
+    },
+    {
+      "name": "8080_loopback_only",
+      "status": "PASS"
+    },
+    {
+      "name": "no_postgres_or_docker_api_host_listener",
+      "status": "PASS"
+    },
+    {
+      "name": "main_next_env_preserved",
+      "status": "PASS",
+      "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+    }
+  ],
+  "outside_lan_acceptance": false,
+  "provider_activation": false,
+  "runtime_changes": false,
+  "real_signed_in_mutation_exercised": false,
+  "model_version_matches_stage3": true,
+  "expected_model_version": "plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7"
+}

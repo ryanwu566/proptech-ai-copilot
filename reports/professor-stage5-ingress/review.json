@@ -1,0 +1,183 @@
+{
+  "schema": "professor-stage5-independent-review-v1",
+  "status": "PASS_PREPARATION_ONLY",
+  "reviewer": "independent stage5_security_review agent",
+  "scope": [
+    "prepared ingress and service templates",
+    "socket descriptor validation",
+    "credential source/name import boundaries",
+    "prepared-vs-active documentation"
+  ],
+  "findings": [
+    {
+      "issue": "readonly inner nginx temporary paths incomplete",
+      "resolution": "all five module temporary paths use /tmp; regression observed RED then GREEN"
+    },
+    {
+      "issue": "root nginx capability set could not signal worker UID",
+      "resolution": "CAP_KILL included for validated reload/worker signaling; regression observed RED then GREEN"
+    },
+    {
+      "issue": "ML companion lacked browser CORS/preflight path",
+      "resolution": "exact CORS factory, no credentials, OPTIONS only on two fixed ML routes; browser/preflight/rejection regressions pass"
+    },
+    {
+      "issue": "credential name scanner could open env/credential files",
+      "resolution": "pre-open path policy and explicit excluded scopes; synthetic read sentinels pass"
+    },
+    {
+      "issue": "literal credential-shaped names could be imported",
+      "resolution": "pure SecretScanner with no installed values checks both fields; fixed refusal regression passes"
+    }
+  ],
+  "remaining_critical_findings": 0,
+  "remaining_important_findings": 0,
+  "minor_wording_findings_resolved": true,
+  "public_activation_approved": false,
+  "runtime_review_performed": false,
+  "secret_values_read": false,
+  "continuation_review": {
+    "status": "PASS_PREPARATION_ONLY",
+    "remaining_important_findings": 0,
+    "remaining_critical_findings": 0,
+    "scope": [
+      "expanded configuration/credential matrix",
+      "hash-bound accepted credential and DB mount evidence",
+      "router conditional plans",
+      "final audit/docs status reconciliation"
+    ],
+    "findings_resolved": [
+      "missing requiredness independent of accepted receipt availability",
+      "exact API-readable staged credential permissions; metadata-only presence remains unverified",
+      "required configuration derives from accepted profiles and mandatory manifest entries",
+      "admin/init/private TLS source and ancestor directory binds denied for all non-DB consumers"
+    ],
+    "additional_corrections": [
+      "Stage2 installer support for Professor user URL correctly false",
+      "Render URL/build aliases explicitly legacy, not optional new API configuration"
+    ],
+    "final_focused_tests_reference": "credential-closure-final-tests.xml",
+    "runtime_or_cloud_approval": false
+  },
+  "no_wan_continuation": {
+    "status": "PASS_PREPARATION_ONLY",
+    "remaining_critical_findings": 0,
+    "remaining_important_findings": 0,
+    "scope": [
+      "Git-index example prefix projection",
+      "tracked O_NOFOLLOW retirement source reads",
+      "unknown-name and credential output boundaries",
+      "source vs deployed retirement claims",
+      "connector capability and count reconciliation"
+    ],
+    "findings_resolved": [
+      "retirement refuses untracked/symlinked private sources, including ancestor symlinks",
+      "unknown and credential-like names cannot be proposed as nonsecret runtime configuration",
+      "pure literal credential scanner rejects retirement identifiers with fixed errors"
+    ],
+    "final_tests": {
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "documentation_corrections": "333 count and GitHub repository-read versus unsupported secrets API distinction corrected",
+    "activation_or_retirement_approval": false
+  },
+  "final_adoption_continuation": {
+    "status": "PASS_PREPARATION_ONLY",
+    "remaining_critical_findings": 0,
+    "remaining_important_findings": 0,
+    "review_scope": [
+      "capability-specific test evidence",
+      "missing/unverified contradiction handling",
+      "adoption maps and A/C job decisions",
+      "no execution/no fake retirement",
+      "public caller and workflow-sample observation limits"
+    ],
+    "findings_resolved": [
+      "health/readiness cannot establish GIS/ML or authenticated persistence",
+      "missing or unverified credentials suppress positive migration/testing",
+      "missing-file recovery note reflects actual missing evidence"
+    ],
+    "final_test_runs": {
+      "focused_adoption_retirement_cli": {
+        "tests": 33,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "final_evidence_guards": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "reviewer_privileged_or_runtime_calls": false,
+    "public_or_retirement_approval": false
+  },
+  "provider_only_continuation": {
+    "status": "PASS_PREPARATION_ONLY",
+    "reviewer": "stage5_security_review",
+    "remaining_critical_findings": 0,
+    "remaining_important_findings": 0,
+    "scope": "provider docs/evidence and retirement scope; no live runtime, secret, or hardening implementation review",
+    "test_results_reviewed_by_reviewer": false,
+    "findings_resolved_or_absent": [
+      "no credential proof inferred from Cloud Run public path/status metadata",
+      "Render timeout remains unavailable, not absent",
+      "21 API-visible manual runs do not prove current configuration or credential presence",
+      "all22retirementNO and separate names/identity/callers/state/public-cutover gates"
+    ]
+  },
+  "deployed_cloud_inventory_continuation": {
+    "status": "PASS_PREPARATION_ONLY",
+    "reviewer": "stage5_security_review",
+    "remaining_critical_findings": 0,
+    "remaining_important_findings": 0,
+    "scope": [
+      "per-field live/repository/historical/unknown boundaries",
+      "scheduled outcomes not credential/provider/import proof",
+      "25 replacement rows with no remote cutover",
+      "eight conditional retirement groups none ready",
+      "unknown production criticality remains unasserted"
+    ],
+    "reviewer_live_or_secret_or_hardening_access": false,
+    "tests_run_by_reviewer": false
+  },
+  "credential_migration_workflow": {
+    "status": "PASS_PREPARATION_ONLY",
+    "reviewer": "stage5_security_review",
+    "remaining_critical_findings": 0,
+    "remaining_important_findings": 0,
+    "resolved_finding": "ALREADY requires accepted exact six-file proof and matching per-row membership; missing/unverified contradictions refused",
+    "regressions": "five absent/failed/incomplete receipt cases plus two contradictory state cases; RED/GREEN verified",
+    "installer_scope": "canonical missing-required stored-only; empty no-op; no activation",
+    "reviewer_privileged_runtime_secret_access": false
+  },
+  "required_provider_storage_policy": {
+    "status": "PASS_PREPARATION_ONLY",
+    "reviewer": "stage5_security_review",
+    "remaining_critical_findings": 0,
+    "remaining_important_findings": 0,
+    "resolved_findings": [
+      "ancestor/descendant and legacy-flat live mounts blocked",
+      "all existing targets compared during write and final original-value verification after probes",
+      "public config kept outside Stage2 secret scan inventory"
+    ],
+    "reviewer_live_or_credential_or_root_access": false,
+    "final_lock_parent_review": "PASS_NO_IMPORTANT_FINDINGS"
+  },
+  "provider_guard_refusal_repair": {
+    "status": "PASS_PREPARATION_ONLY",
+    "reviewer": "stage5_security_review",
+    "remaining_critical_findings": 0,
+    "remaining_important_findings": 0,
+    "scope": "optional legacy alias compatibility only; exact issuer/audience, conflicting alias and mandatory disable guards remain fail-closed",
+    "historical_cause_precision": "generic original receipt does not identify the field; accepted-profile compatibility failure reproduced",
+    "actual_provider_sources_discovered": false,
+    "operator_retry_workflow_appropriate_with_private_inputs": true,
+    "tests_or_privileged_operations_run_by_reviewer": false
+  }
+}

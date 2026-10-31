@@ -123,6 +123,32 @@ def test_postgres_writer_uses_transaction_marker_and_parameterized_aggregates():
     assert any(isinstance(value, datetime) and value.tzinfo == UTC for value in aggregate[1][0])
 
 
+def test_taiwan_provider_counts_fit_accepted_durable_schema_without_misattributing_ee():
+    """New source labels cannot poison the whole async ledger batch on old 021."""
+    from services.usage_ledger import PostgresUsageStore, _COLUMNS
+    from uuid import UUID
+    written = []
+    class Result:
+        def fetchone(self): return (1,)
+    class Connection:
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        @contextmanager
+        def transaction(self): yield
+        def execute(self, *_args): return Result()
+        def cursor(self): return self
+        def executemany(self, query, values):
+            written.extend(dict(zip(_COLUMNS, value)) for value in values)
+    usage = UsageAggregator()
+    usage.observe(capability="satellite", event="physical_calls", provider="nlsc_photo2")
+    usage.observe(capability="satellite", event="physical_calls", provider="csrsr_spot", count=7)
+    assert set(usage.summary()["by_provider"]) >= {"nlsc_photo2", "csrsr_spot"}
+    PostgresUsageStore("postgresql://local.test/disposable", connection_factory=lambda _: Connection()).write_batch(UUID(int=1), usage.take_pending())
+    counts = {row["provider"]: row["provider_attempt_count"] for row in written}
+    assert counts == {"nlsc": 1, "unknown": 7}
+    assert "earth_engine" not in counts
+
+
 def test_ledger_runtime_configuration_fails_safely(monkeypatch):
     from services.usage_ledger import ledger_configuration
     monkeypatch.setenv("API_USAGE_LEDGER_REQUIRED", "true")

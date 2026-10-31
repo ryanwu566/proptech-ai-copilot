@@ -15,3 +15,21 @@ secrets.toml
 .streamlit/secrets.toml
 backend/build-identity.json
 reports/output/
+# Operator credentials live outside the checkout; defense against accidental copies.
+**/.env
+**/.env.*
+secrets/
+**/secrets/
+credentials/
+**/credentials/
+**/application_default_credentials.json
+**/service-account*.json
+**/*service_account*.json
+**/*-credentials.json
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.dump
+**/*.backup
+!config/professor-server-credentials.json

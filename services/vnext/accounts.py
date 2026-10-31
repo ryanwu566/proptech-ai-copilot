@@ -78,6 +78,9 @@ _DEFAULT_AUTHORIZER = AccountAuthorizer(PostgresAccountRepository())
 
 
 def get_account_authorizer() -> AccountAuthorizer:
+    from services.professor_userdb import enabled, get_repository
+    if enabled():
+        return AccountAuthorizer(get_repository())
     return _DEFAULT_AUTHORIZER
 
 

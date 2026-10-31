@@ -1,0 +1,238 @@
+{
+  "schema": "professor-stage4a-final-live-acceptance-v1",
+  "checked_at": "2026-10-30T04:20:16.316118+00:00",
+  "status": "PARTIAL",
+  "runtime_activation": "PASS",
+  "backend_ready_for_frontend_contract_integration": true,
+  "production_ready": false,
+  "activation_receipt": {
+    "private_evidence_root": "/var/backups/proptech-selfhost/stage4a-activation/20261030T040052Z-8cd21b4e0da2",
+    "sanitized_source": "/tmp/professor-stage4a-activation-dpf5uno4",
+    "source_commit": "1d4f4db7a991b4f7bb2baead7c3201dc21b50514",
+    "api_image_id": "sha256:dce27b6bd9b1d336e8b15c93559642722b5e98f4c21012df4718f220ab4c0cde",
+    "api_container_id": "b7876eefde0af73ab7ff4f0c674b90b3e5e531836b689098025fb6bbdd236bbc",
+    "completed_at": "2026-10-30T04:13:51.337014+00:00",
+    "exit_code": 0,
+    "status": "PASS",
+    "reviewed_apply_source_sha256": "e56074f506ee98cfbbe754266d724dc18fa5d5ed405f650afeefcf290a9cd186"
+  },
+  "checks": {
+    "Supabase_identity_authority": {
+      "status": "PASS",
+      "basis": "Accepted public frontend authority plus exact activated issuer/audience.",
+      "issuer": "https://flyhsjcynreuofbcdxod.supabase.co/auth/v1",
+      "audience": "authenticated",
+      "authority_sha256": "ffd784ac6e456727b17ad7daf4db013351e76b43599c27ec4f4aa830958b588e"
+    },
+    "Professor_application_data_authority": {
+      "status": "PASS",
+      "basis": "Actual candidate TLS/direct-role/grants/startup and active-image validation.",
+      "database": "proptech_app",
+      "schema_name": "professor_user",
+      "runtime_role": "professor_user_runtime",
+      "authority_reviewed": true
+    },
+    "existing_users_preserved": {
+      "status": "PASS",
+      "basis": "Fresh read-only provider aggregate: one confirmed user predates provisioning; no identity writes.",
+      "existing_confirmed_users": 1,
+      "banned_deleted_anonymous": 0
+    },
+    "current_user_session": {
+      "status": "PASS_BACKEND_TESTS_AND_LIVE_NEGATIVE",
+      "basis": "Signed fixture sessions pass; live missing/malformed/unsigned tokens receive401.",
+      "live_valid_provider_session": "PENDING_FRONTEND_INTEGRATION"
+    },
+    "user_profile_persistence": {
+      "status": "PASS_REAL_DISPOSABLE_POSTGRES",
+      "basis": "Profile writes/reads use fresh real DB transactions; exact live schema/RLS verified.",
+      "live_authenticated_mutation": "NOT_RUN"
+    },
+    "Saved_Cases_persistence": {
+      "status": "PASS_REAL_DISPOSABLE_POSTGRES",
+      "basis": "Fresh repository/connections, same-user new session and durable ownership pass.",
+      "live_authenticated_create_reopen": "NOT_RUN"
+    },
+    "logout_new_login_persistence": {
+      "status": "PASS_REAL_DISPOSABLE_POSTGRES_AND_SIGNED_FIXTURE_API",
+      "basis": "Revocation and refreshed-token rejection; cases/preferences/reports retained for new session.",
+      "live_provider_signout_new_login": "PENDING_FRONTEND_INTEGRATION"
+    },
+    "cross_user_read_update_delete": {
+      "status": "PASS_REAL_DISPOSABLE_POSTGRES_AND_API",
+      "basis": "RLS/ownership/CAS deny foreign reads, modifications and deletes; exact schema activated.",
+      "live_two_real_provider_users": "NOT_RUN_NO_SECOND_USER_CREATED"
+    },
+    "malformed_expired_auth": {
+      "status": "PASS",
+      "basis": "Live malformed and unsigned expired JWT401; correctly signed expired/revoked JWT rejection in disposable API tests.",
+      "raw_tokens_returned": false
+    },
+    "Stage1_2_APIs": {
+      "status": "PASS_LIVE",
+      "basis": "Fresh loopback probe agrees with successful operator receipt.",
+      "checks": 12,
+      "names": [
+        "health",
+        "readiness",
+        "demographics_village",
+        "demographics_location",
+        "valuation_status",
+        "valuation_estimate",
+        "valuation_trend",
+        "finder",
+        "market",
+        "market_known_special_period",
+        "wra_matched",
+        "wra_no_match"
+      ]
+    },
+    "Stage3_ML_companion": {
+      "status": "PASS_LIVE",
+      "basis": "Fresh health/status/known estimate; companion unchanged.",
+      "model_version": "plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7",
+      "manifest_sha256": "54eba6a04069b0f8d569c2fe62bbe1ca70771b5594cb220e908e9f7e3524fac4",
+      "is_actionable": false
+    },
+    "PLVR_exclusions_and_Market_coverage": {
+      "status": "PASS_OPERATOR_DATABASE_PROBE",
+      "basis": "Before/after serving snapshots identical; known38652 stored and excluded.",
+      "counts": {
+        "active_aggregates": 7500,
+        "coverage_regions": 368,
+        "eligible_regions": 322,
+        "exclusions": 117986,
+        "future_official_rows": 0,
+        "known_raw_rows": 1,
+        "known_row_and_exclusion_sha256": "af8b07359363aaba2c54ba04c8ef88d84cb8119a075a562938297b4dee4038c1",
+        "known_serving_rows": 0,
+        "official_rows": 451672,
+        "raw_rows": 451744,
+        "sample_rows": 72,
+        "zero_candidate_regions": 46
+      }
+    },
+    "PostgreSQL_private": {
+      "status": "PASS",
+      "basis": "Live no5432 listener and actual DB port bindings empty; containers/volumes unchanged."
+    },
+    "8080_loopback_only": {
+      "status": "PASS_LIVE",
+      "basis": "Socket and Docker proxy binding agree.",
+      "listener": "127.0.0.1:8080"
+    },
+    "market_ops_and_paid_providers": {
+      "status": "PASS_OPERATOR_EXACT_MERGE_AND_ACTIVE_GUARDS",
+      "basis": "Successful reviewed activation checks preserved all disabled guards.",
+      "enabled": false
+    },
+    "secret_separation_and_metadata": {
+      "status": "PASS",
+      "basis": "Six intended read-only API files match current host inode metadata; no admin/init secrets.",
+      "api_files": 6,
+      "owner": 0,
+      "group": 10001,
+      "mode": "0440"
+    },
+    "no_secret_leakage": {
+      "status": "PASS_KNOWN_CREDENTIAL_SCAN_AND_FOCUSED_TESTS",
+      "basis": "Operator scanned image layers/history/config/context/output, Compose and logs; live errors do not echo inputs.",
+      "scan": {
+        "build_context_scanned": true,
+        "build_output_scanned_in_memory": true,
+        "coverage": "Known installed credential values, supported encodings/password variants and private-key signatures; not a proof against arbitrary unknown encodings",
+        "full_history_and_config_scanned": true,
+        "image_id": "sha256:dce27b6bd9b1d336e8b15c93559642722b5e98f4c21012df4718f220ab4c0cde",
+        "scan": {
+          "archive_members": 29,
+          "config_files": 2,
+          "format": "docker_oci",
+          "images": 1,
+          "layer_members": 21581,
+          "layers": 18
+        },
+        "status": "PASS"
+      },
+      "limitation": "Not a proof against arbitrary unknown encodings."
+    },
+    "rollback_evidence": {
+      "status": "PASS_PREPARED_AT_SUCCESSFUL_ACTIVATION",
+      "basis": "Exact reviewed program created/fsynced/backed-up and syntax-checked recovery before ACTIVATE.",
+      "script": "/var/backups/proptech-selfhost/stage4a-activation/20261030T040052Z-8cd21b4e0da2/ROLLBACK.sh",
+      "old_api_image": "sha256:035a049691b0038f7508acc00c3e9bb82c101a295c9f45edcea8d1b03b3d42a0",
+      "same_filesystem_move": true,
+      "hermetic_environment": true,
+      "bounded_proxy_recovery": true,
+      "retains_user_data_and_authority_decision": true,
+      "root_private_files_not_reopened": true
+    },
+    "X9_runtime_dependency": {
+      "status": "PASS_ABSENT",
+      "basis": "All active dataset binds use /srv/proptech-data/DB; no X9 bind."
+    },
+    "frontend_preserved": {
+      "status": "PASS",
+      "basis": "Current main next-env SHA equals receipt; isolated worktree has no frontend changes.",
+      "next_env_sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+    },
+    "frontend_contract": {
+      "status": "PASS",
+      "basis": "Sixteen protected operations match offline schema from exact activated source; payloads unchanged.",
+      "path": "docs/contracts/auth-user-api-v1.md",
+      "live_openapi": "404 intentional existing ingress surface_disabled policy"
+    }
+  },
+  "provider_preservation_aggregate": {
+    "auth_users": 1,
+    "confirmed_users": 1,
+    "prior_signin_users": 1,
+    "authenticated_audience_users": 1,
+    "authenticated_role_users": 1,
+    "banned_users": 0,
+    "deleted_users": 0,
+    "anonymous_users": 0,
+    "users_predating_stage4a_provisioning": 1,
+    "row_ids_emails_passwords_or_tokens_exported": false,
+    "cloud_writes": false
+  },
+  "focused_verification": {
+    "command": "pytest tests/test_professor_userdb.py tests/test_professor_user_api.py tests/test_vnext_auth_api.py -q --disable-warnings --maxfail=1",
+    "result": "65 passed, 1 warning in 18.01s",
+    "disposable_database": "Private Unix socket; no TCP listener; fixture stopped/removed cluster.",
+    "live_api_regressions": "12 PASS",
+    "live_auth_negative_checks": "8 PASS",
+    "live_ml": "health/status/known estimate PASS",
+    "full_suite_run": false,
+    "real_provider_credentials_read": false
+  },
+  "remaining_acceptance": {
+    "status": "PENDING_FRONTEND_AUTHENTICATED_LIVE_FLOW",
+    "reason": "No valid real Supabase user session was supplied/read; the successful receipt expressly defers authenticated browser acceptance. No second Supabase user may be created for this test. Live signed-user profile/case/logout/new-login and real two-user end-to-end checks are not established.",
+    "what_passed": "Actual active schema/image/role/TLS and negative/public live APIs; positive persistence, session and ownership behavior on private disposable PostgreSQL.",
+    "next": "Frontend contract integration; collect sanitized existing-user authenticated-flow outcomes only. A real second account requires separate authorization if no approved account already exists."
+  },
+  "independent_acceptance_review": {
+    "status": "PASS_PARTIAL_SCOPE_CONFIRMED",
+    "reviewer": "stage4a_security_review",
+    "missing_host_gates": false,
+    "remaining_critical_or_important_defects": 0,
+    "authenticated_live_user_flows": "PENDING"
+  },
+  "safety": {
+    "provisioning_rerun": false,
+    "activation_rerun": false,
+    "previous_postprovision_inspection_rerun": false,
+    "sudo_executed": false,
+    "host_or_serving_db_mutated_by_agent": false,
+    "real_user_app_data_mutated_by_agent": false,
+    "Supabase_users_or_credentials_modified": false,
+    "secret_values_read_or_printed": false,
+    "provider_activation": false,
+    "frontend_modified": false,
+    "main_worktree_modified": false,
+    "dev_sda_touched": false,
+    "X9_touched": false,
+    "cloud_deployments_or_remote_modified": false,
+    "pushed": false
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "schema": "professor-provider-guard-repair-validation-v1",
+  "status": "PASS",
+  "focused_tests": {
+    "tests": 64,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "red_green": "accepted issuer-only profile reproduced original provider_guard_unavailable before repair; all six profile cases pass after repair",
+  "python_ast": "PASS",
+  "migration_retried": false,
+  "provider_calls": 0,
+  "real_secret_values_read": false,
+  "independent_review": {
+    "status": "PASS_PREPARATION_ONLY",
+    "reviewer": "stage5_security_review",
+    "remaining_critical_findings": 0,
+    "remaining_important_findings": 0,
+    "scope": "optional legacy alias compatibility only; exact issuer/audience, conflicting alias and mandatory disable guards remain fail-closed",
+    "historical_cause_precision": "generic original receipt does not identify the field; accepted-profile compatibility failure reproduced",
+    "actual_provider_sources_discovered": false,
+    "operator_retry_workflow_appropriate_with_private_inputs": true,
+    "tests_or_privileged_operations_run_by_reviewer": false
+  },
+  "source_sha256": "ef4b6541d7f89e7e166b6d307703550310b4bc2739aeca2fbf6028c141b8932d"
+}

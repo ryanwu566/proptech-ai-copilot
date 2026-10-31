@@ -13,7 +13,8 @@ NOW = datetime(2026, 9, 20, 12, tzinfo=timezone.utc)
 
 
 @pytest.fixture(autouse=True)
-def isolated_cache():
+def isolated_cache(monkeypatch):
+    monkeypatch.setenv("SATELLITE_REFERENCE_PROVIDER", "earth_engine")
     cache = getattr(satellite, "_SATELLITE_CACHE", None)
     if cache is not None:
         cache.clear()

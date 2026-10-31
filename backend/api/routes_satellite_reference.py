@@ -23,7 +23,10 @@ class SatelliteReferenceRequest(BaseModel):
 
 @router.post("/satellite-reference", response_model=SatelliteReferenceResponse)
 async def post_satellite_reference(request: SatelliteReferenceRequest) -> SatelliteReferenceResponse:
-    return await fetch_satellite_reference(
+    response = await fetch_satellite_reference(
         latitude=request.latitude,
         longitude=request.longitude,
     )
+    from services.provider_observability import observe_response
+    observe_response("satellite", response.model_dump())
+    return response

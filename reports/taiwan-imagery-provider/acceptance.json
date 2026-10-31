@@ -1,0 +1,242 @@
+{
+  "status": "IMPLEMENTATION_VERIFIED_RUNTIME_PENDING",
+  "base_commit": "fae25daa6b1c8f1af5c32c64c32ae3570c1d37cb",
+  "branch": "server/taiwan-imagery-provider-20261030",
+  "scope": "Isolated local code preparation only; no deploy/activation/merge/push",
+  "providers": {
+    "nlsc_photo2": {
+      "implementation": "PASS",
+      "default_selector": true,
+      "source_type": "orthophoto",
+      "source_vintage": null,
+      "api_key_required": false,
+      "runtime_tls": "NOT_VERIFIED_IN_CANDIDATE_IMAGE"
+    },
+    "csrsr_spot": {
+      "implementation": "PASS",
+      "source_type": "satellite",
+      "supported_years": [
+        1996,
+        2025
+      ],
+      "default_year": 2025,
+      "noncommercial_admission_required": true,
+      "enabled_by_default": false,
+      "actual_image_runtime_smoke": "NOT_RUN"
+    },
+    "earth_engine": {
+      "code_preserved": true,
+      "enabled_by_default": false,
+      "manager_resolved_in_taiwan_mode": false,
+      "adc_needed_for_taiwan": false
+    }
+  },
+  "bounds": {
+    "output_pixels": [
+      512,
+      512
+    ],
+    "aoi_radius_m": 500,
+    "max_output_jpeg_bytes": 250000,
+    "max_api_response_bytes": 365000,
+    "total_timeout_seconds": 8,
+    "tile_count_ceiling": 9,
+    "tile_fetch_concurrency": 1,
+    "physical_work_slots": 1,
+    "completed_taiwan_imagery_cache": false,
+    "persistent_imagery_storage": false,
+    "redirects_followed": false,
+    "tls_verification_disabled": false,
+    "external_environment_proxies": false
+  },
+  "verification": {
+    "backend_pack": {
+      "passed": 272,
+      "skipped": 1,
+      "modules": [
+        "test_taiwan_imagery_service",
+        "test_taiwan_imagery_providers",
+        "test_imagery_http",
+        "test_taiwan_imagery_preflight",
+        "test_satellite_reference",
+        "test_satellite_cost_optimization",
+        "test_earth_engine_worker_pool",
+        "test_earth_engine_keyless_adc",
+        "test_anti_abuse",
+        "test_provider_observability",
+        "test_api_usage_ledger",
+        "test_api_usage_quota",
+        "test_provider_request_cache"
+      ]
+    },
+    "production_selfhost_regressions": {
+      "passed": 59,
+      "modules": [
+        "test_provider_acceptance",
+        "test_production_config",
+        "test_selfhost_runtime"
+      ]
+    },
+    "new_nonsecret_configuration_guard_pack": {
+      "passed": 109,
+      "modules": [
+        "test_taiwan_imagery_service",
+        "test_professor_secrets",
+        "test_provider_acceptance"
+      ],
+      "overlaps_previous_packs": true
+    },
+    "skip_reason": "Real disposable PostgreSQL ledger integration URL not configured; no real DB used",
+    "frontend_unit_tests": 7,
+    "frontend_browser_suite_run": false,
+    "typecheck": "PASS tsc --noEmit",
+    "affected_frontend_lint": "PASS --max-warnings=0 for 6 supported affected files; 2 browser E2E files ignored by repository lint config and separately typechecked",
+    "python_ast_312": {
+      "status": "PASS",
+      "files": 21
+    },
+    "diff_check": "PASS",
+    "secret_scan": {
+      "status": "PASS",
+      "scope": "All changed source/doc files; fixed credential format and forbidden-path checks",
+      "scanned_files": 38,
+      "actual_secret_files_read": false
+    },
+    "real_provider_calls_during_tests": 0,
+    "provider_network_calls_this_implementation": 0,
+    "offline_preflight": "PREPARED_NOT_NETWORK_VERIFIED",
+    "final_backend_pack": {
+      "passed": 402,
+      "skipped": 1,
+      "warning_count": 1,
+      "warning": "Existing Starlette TestClient httpx deprecation",
+      "skip": "test_api_usage_ledger.py:261 Dedicated disposable usage PostgreSQL is not configured",
+      "command": "/tmp/proptech-integration-venv/bin/python -B -m pytest -q tests/test_taiwan_imagery_service.py tests/test_taiwan_imagery_providers.py tests/test_imagery_http.py tests/test_taiwan_imagery_preflight.py tests/test_satellite_reference.py tests/test_satellite_cost_optimization.py tests/test_earth_engine_worker_pool.py tests/test_earth_engine_keyless_adc.py tests/test_anti_abuse.py tests/test_provider_observability.py tests/test_api_usage_ledger.py tests/test_api_usage_quota.py tests/test_provider_request_cache.py tests/test_provider_acceptance.py tests/test_production_config.py tests/test_selfhost_runtime.py tests/test_professor_secrets.py --tb=short -rs -p no:cacheprovider",
+      "full_repository_suite_run": false,
+      "real_provider_calls": 0,
+      "elapsed_seconds": 31.25
+    },
+    "frontend_test_command": "node --test scripts/imagery-reference.test.mjs",
+    "review": {
+      "spec": "APPROVED_LOCAL_IMPLEMENTATION",
+      "quality": "APPROVED",
+      "security": "APPROVED_LOCAL_IMPLEMENTATION",
+      "critical_findings_open": 0,
+      "important_findings_open": 0,
+      "all_reported_minors_addressed": true,
+      "evidence": "reports/taiwan-imagery-provider/review.md",
+      "runtime_activation_accepted": false
+    },
+    "test_runtime": {
+      "python": "3.14.4",
+      "pillow": "13.0.0",
+      "openssl": "3.5.5"
+    },
+    "full_suite_attempt": "A subagent started collection once and was stopped immediately before test execution; all completed verification was focused"
+  },
+  "isolation": {
+    "hardening_worktree_modified": false,
+    "main_worktree_modified": false,
+    "next_env_d_ts_modified": false,
+    "credentials_added": false,
+    "database_migrations_or_mutations": false,
+    "runtime_profile_changed": false,
+    "providers_activated": false,
+    "sda_accessed": false,
+    "x9_accessed": false,
+    "production_infrastructure_changed": false
+  },
+  "usage_compatibility": {
+    "exact_process_provider_labels": true,
+    "durable_only_mapping": {
+      "nlsc_photo2": "nlsc",
+      "csrsr_spot": "unknown"
+    },
+    "accepted_021_catalog_unchanged": true,
+    "durable_csrsr_exclusive_breakdown_available": false
+  },
+  "limitations": [
+    "Docker socket unavailable; current source and accepted Stage4A evidence indicate Python3.12, but actual candidate-image CA validation remains unproven",
+    "Prior audit on host Python3.14 observed NLSC Missing Subject Key Identifier; unchanged normal CA validation fails closed",
+    "PHOTO2 capture date/vintage unknown",
+    "CSRSR noncommercial/competition only; annual mosaic is not single-date imagery",
+    "No provider SLA or scene suitability established by synthetic tests; legitimate uniform scenes may be conservatively rejected",
+    "Existing accepted Stage2 satellite admission remains disabled; future controlled admission/profile review required",
+    "Durable usage provider precision remains legacy NLSC-family/unknown; exact provenance stays in response and process observations"
+  ],
+  "next_action": "Review candidate Python3.12 image and run one bounded normal-TLS preflight without switching runtime",
+  "files_changed": [
+    ".env.example",
+    "backend/api/routes_satellite_reference.py",
+    "backend/api_main.py",
+    "backend/requirements.txt",
+    "config/hosted-environment-manifest.json",
+    "docs/contracts/imagery-reference-v1.md",
+    "docs/operations/taiwan-imagery-runtime.md",
+    "docs/superpowers/plans/2026-10-30-taiwan-imagery-providers.md",
+    "frontend_next/components/satellite-evidence.tsx",
+    "frontend_next/e2e/commercial-risk-environment.spec.ts",
+    "frontend_next/e2e/satellite-evidence.spec.ts",
+    "frontend_next/lib/api.ts",
+    "frontend_next/lib/experience-i18n.ts",
+    "frontend_next/lib/imagery-reference.ts",
+    "frontend_next/lib/workspace/risk-buyer-copy.ts",
+    "frontend_next/scripts/imagery-reference.test.mjs",
+    "reports/taiwan-imagery-provider/acceptance.json",
+    "reports/taiwan-imagery-provider/review.md",
+    "requirements.txt",
+    "scripts/ops/taiwan_imagery_preflight.py",
+    "services/api_usage.py",
+    "services/imagery_http.py",
+    "services/imagery_providers.py",
+    "services/imagery_reference.py",
+    "services/provider_config_contract.py",
+    "services/provider_observability.py",
+    "services/satellite_reference.py",
+    "services/usage_ledger.py",
+    "tests/test_anti_abuse.py",
+    "tests/test_api_usage_ledger.py",
+    "tests/test_earth_engine_worker_pool.py",
+    "tests/test_imagery_http.py",
+    "tests/test_provider_observability.py",
+    "tests/test_satellite_cost_optimization.py",
+    "tests/test_satellite_reference.py",
+    "tests/test_taiwan_imagery_preflight.py",
+    "tests/test_taiwan_imagery_providers.py",
+    "tests/test_taiwan_imagery_service.py"
+  ],
+  "validated_source_sha256": {
+    "backend/api/routes_satellite_reference.py": "6b79cb33c9e773d787bb34058cf3da3ba33096a130679e1a8ba7081d0b8da6d3",
+    "backend/api_main.py": "1fa0ecf82216a8201540ee1a067b87d74ccd543a87b1fee612cef2ac4a414a36",
+    "backend/requirements.txt": "f6ef0e871ce956bf7ff111ba7ed0594a6979bdcb9dffff0aac644f96d27a8441",
+    "config/hosted-environment-manifest.json": "707bd3e9fa7d3cb8eb356ae91290258e46e31dc6172b045fec44bc653fad02fa",
+    "frontend_next/components/satellite-evidence.tsx": "f3dcf1678f488364ea77f004d44437e12ecb3b923b372c764f207aeeefc4601f",
+    "frontend_next/e2e/commercial-risk-environment.spec.ts": "0e1ab6ef7f3ac255eae75c0562521528239bbf92a95aea741ada6fe7d668d33f",
+    "frontend_next/e2e/satellite-evidence.spec.ts": "d477188cc851d21901a711e4a855bf83ed4d819b4bc8db72c217334631a19a8f",
+    "frontend_next/lib/api.ts": "5c9ac66b036e0d431dc3060e54a1e2d71b42d63c44a00db073c0988e96baf4aa",
+    "frontend_next/lib/experience-i18n.ts": "4f9f36d9330fb43dcb7d320c790376f7d96e233c9ef1e77f017baf44749d6a4f",
+    "frontend_next/lib/imagery-reference.ts": "4681c5438963c916c522c6e9b611bd7ec5c1f24692d12f2673ed35e0774cbdb7",
+    "frontend_next/lib/workspace/risk-buyer-copy.ts": "1104c2150329f5d5c92d349ef6305d16278eb90e735693628681ca991bd0ef93",
+    "frontend_next/scripts/imagery-reference.test.mjs": "c49689918c57095fd81feec15f310eee221d741f6388908cb6f2e9f967e0c308",
+    "requirements.txt": "220cf5c9cda0bf8c0a6563381221087c4c6198c717f6f3efef4ea62963c07686",
+    "scripts/ops/taiwan_imagery_preflight.py": "f2d77235113f497f5196b44eedd9dfc66112e81ef8b8ecbf68a914b5c5de2146",
+    "services/api_usage.py": "bf3b9acc775d5ef4a82c43f7f4bd48e7c214a1e1dbdc1acb62206abf7cf1118e",
+    "services/imagery_http.py": "53bf75afae223822bcc8810c309512c3214dd663912615748a9f2da6e02e1b83",
+    "services/imagery_providers.py": "bdef7f0b0e8f8e62bf76b6b50d80b4fcd7a3991e4c7be69f14374a54a11fdb4d",
+    "services/imagery_reference.py": "58c44ddd40f53ba50e816f70f90f70967c4962db345a3bef407f9feb006c613c",
+    "services/provider_config_contract.py": "b0d66fa3b86ce483db639a50abb1a19522bc5fddaef778671430d146090c0dfd",
+    "services/provider_observability.py": "4207dd2fc9e12035668ebf771268f657784d15ffc18e2c37f78e8bfe8b5e174b",
+    "services/satellite_reference.py": "1a49a70efb93e79addaaf5356c392c13c654a969fa18bececfe743b36f114027",
+    "services/usage_ledger.py": "f988af83595d4bdaf5fd756a1369992b2216cb59eff3c8674349cbd7860dc06d",
+    "tests/test_anti_abuse.py": "e0f874d4310073961021834e53781f0a842ed6c72ad151d35f6b41c41eaf494a",
+    "tests/test_api_usage_ledger.py": "3e5de2bfcd65fb1847abdbba1a95ad642c65748d15deba3e2463d5c957af9b49",
+    "tests/test_earth_engine_worker_pool.py": "2649e35bcb1993a71ed459994b5199e7886924d1a32350ebcce723c1874348a9",
+    "tests/test_imagery_http.py": "c7fd009d51367bddd95d38b46bcc33124b358388325c30ad8e5a2cf8e6458341",
+    "tests/test_provider_observability.py": "12283a81e9447a345ee603778c71f8204e8dc9b09fb30b34faa3ca6c3dddffb1",
+    "tests/test_satellite_cost_optimization.py": "c346700d44f463de79841684c1a6a8e4f64c8167f419e9155c2d67e584415b60",
+    "tests/test_satellite_reference.py": "b9880af42aaf640e5a5d716ab87a36c07ec72ea136228eaeeab905f495aff0a2",
+    "tests/test_taiwan_imagery_preflight.py": "0c6d786d72c8819e6eae8c8a1d3c79d39f380f01f43350d4558c493ce48b65cd",
+    "tests/test_taiwan_imagery_providers.py": "290c1ddf20c2a42dc103d4bafa7d094c33dc82cc18bc0f7da38ae7c0533d3777",
+    "tests/test_taiwan_imagery_service.py": "4f19613a39eb0360d44b6d2a54cfc4916ed38f8e43a10f7c3c9ee3d1ffb86abd"
+  }
+}

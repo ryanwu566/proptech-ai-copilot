@@ -1,0 +1,60 @@
+{
+  "schema": "professor-stage4a-authority-approval-review-v1",
+  "checked_at": "2026-10-30T03:53:18.492209+00:00",
+  "status": "APPROVED_FOR_CONTROLLED_OPERATOR_ACTIVATION",
+  "database_authority_approval": "RECORDED",
+  "review_authorization": "Latest operator instruction accepts schema/ownership/auth authority and requests final API activation preparation.",
+  "identity_authority": {
+    "provider": "supabase",
+    "project_ref": "flyhsjcynreuofbcdxod",
+    "issuer": "https://flyhsjcynreuofbcdxod.supabase.co/auth/v1",
+    "audience": "authenticated",
+    "authority_sha256": "ffd784ac6e456727b17ad7daf4db013351e76b43599c27ec4f4aa830958b588e",
+    "canonical_user_id": "verified Supabase sub UUID unchanged"
+  },
+  "application_data_authority": {
+    "provider": "professor_postgresql",
+    "database": "proptech_app",
+    "schema": "professor_user",
+    "role": "professor_user_runtime",
+    "resources": [
+      "profiles",
+      "preferences",
+      "saved_cases",
+      "case_activity",
+      "case_commands",
+      "reports",
+      "local session revocation"
+    ]
+  },
+  "existing_users": {
+    "preserved": true,
+    "confirmed_existing_users": 1,
+    "migration_required": false,
+    "passwords_or_identity_rows_exported": false,
+    "modified": false
+  },
+  "accepted_evidence": [
+    "auth-authority.json",
+    "catalog-reconciliation.json",
+    "post-provision-verification.json"
+  ],
+  "issuer_conflict": false,
+  "legacy_consumer_accounts_present": false,
+  "legacy_workspace_cases_present": false,
+  "live_database_flag": {
+    "captured_value": false,
+    "changed_by_agent": false,
+    "approved_change": "singleton authority_reviewed false to true only after ACTIVATE and exact issuer/version/catalog preconditions",
+    "rollback_semantics": "retained as a separately reviewed decision; does not enable an inactive profile",
+    "current_evidence_value": true,
+    "applied_by": "operator controlled activation",
+    "successful_activation_evidence": "/var/backups/proptech-selfhost/stage4a-activation/20261030T040052Z-8cd21b4e0da2"
+  },
+  "operator_secret_comparison_for_identity_proof_required": false,
+  "secret_values_returned": false,
+  "runtime_activated": true,
+  "provider_activation": false,
+  "frontend_changes": false,
+  "later_operator_result": "PASS_EXIT_0"
+}

@@ -1,0 +1,135 @@
+{
+  "schema": "professor-earth-engine-keyless-preparation-v1",
+  "checked_at": "2026-10-30T11:16:14.261790+00:00",
+  "status": "PASS_PREPARED_NOT_INSTALLED_OR_ACTIVE",
+  "strategy": "ADC_IMPERSONATION",
+  "service_account_display_name": "PropTech Render Earth Engine",
+  "service_account_email": "proptech-render-earth-engine@project-3bd34c3e-daee-493f-ad6.iam.gserviceaccount.com",
+  "organization_policy": "iam.disableServiceAccountKeyCreation",
+  "organization_policy_change_performed": false,
+  "service_account_private_keys_allowed": false,
+  "persistent_adc_required": true,
+  "persistent_adc_contains_refresh_secret": true,
+  "cached_access_tokens_persisted": false,
+  "allowed_adc_type": "impersonated_service_account",
+  "allowed_source_type": "authorized_user",
+  "google_auth_default_supported": "PASS_SYNTHETIC_SDK",
+  "earth_engine_adapter_supported": "PASS_SYNTHETIC_SDK",
+  "tested_sdk": {
+    "google_auth": "2.62.0",
+    "earthengine_api": "1.7.50"
+  },
+  "actual_image_sdk_probe": "PREPARED_NOT_EXECUTED",
+  "iam": {
+    "source_permission": "iam.serviceAccounts.getAccessToken",
+    "standard_source_role": "roles/iam.serviceAccountTokenCreator",
+    "source_role_scope": "target service account only",
+    "service_account_user_alone_sufficient": false,
+    "api_required": "iamcredentials.googleapis.com",
+    "live_binding_and_api_verified": false,
+    "operator_review_required": true
+  },
+  "unattended": {
+    "automatic_short_token_refresh": "PASS_SYNTHETIC_TRANSPORT",
+    "reload_after_restart": "PASS_SYNTHETIC_TRANSPORT",
+    "source_session_policy": "PENDING_OPERATOR_REVIEW",
+    "production_acceptance": "PENDING",
+    "wif_fallback": "REQUIRES_SEPARATELY_REVIEWED_RENEWABLE_MACHINE_IDENTITY_NO_IDENTITY_INVENTED"
+  },
+  "reboot": {
+    "persistent_store": "/etc/proptech-selfhost/secrets/earth_engine_adc_json",
+    "volatile_stage": "/run/proptech-selfhost/secrets/providers/earth_engine/earth_engine_adc_json",
+    "restore_option": "--stage-stored-providers",
+    "restore_implementation": "PASS_SYNTHETIC_COMPLETE_PERSISTENT_SET_TESTS",
+    "systemd_installation": "NOT_PERFORMED_PARALLEL_HARDENING_OWNER",
+    "core_restore_first": true,
+    "actual_reboot": "NOT_RUN"
+  },
+  "source_file_confirmed": false,
+  "gcloud_in_host_path": false,
+  "operator_auth_command_ready_now": false,
+  "operator_auth_command": null,
+  "protected_import_command_documented": "docs/operations/professor-stage5/earth-engine-keyless-adc.md",
+  "real_credentials_opened": false,
+  "secret_values_included": false,
+  "credential_migration_executed": false,
+  "provider_activation_performed": false,
+  "paid_provider_calls": 0,
+  "runtime_or_network_configuration_changed": false,
+  "independent_review": {
+    "status": "PASS",
+    "reviewer": "earth_engine_keyless_review",
+    "finding": "optional empty account metadata compatibility",
+    "resolution": "fixed and regression tested",
+    "independent_focused_tests_passed": 106
+  },
+  "static": {
+    "python_ast": "PASS",
+    "embedded_python_ast": "PASS",
+    "json": "PASS",
+    "literal_credential_scan": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "focused_tests": {
+    "junit": "reports/professor-stage5-ingress/earth-engine-keyless-tests.xml",
+    "status": "PASS",
+    "tests": 250,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "warnings": [
+      "pre-existing Starlette TestClient/httpx deprecation"
+    ]
+  },
+  "source_files": [
+    {
+      "path": "services/earth_engine_adc.py",
+      "sha256": "5847d05a959614e99128f30f9910318298a47acecc18ea7b7163f20e0cafbe50"
+    },
+    {
+      "path": "services/selfhost_secret_files.py",
+      "sha256": "ec297f783a509f578429a7e4dc39c33f34592922c3c58fb5157fe999aa8a10a2"
+    },
+    {
+      "path": "scripts/ops/professor_provider_storage.py",
+      "sha256": "613d8fc6ac19ce34461308eeec2c09da02136223fe14bfac749ea457880e8954"
+    },
+    {
+      "path": "scripts/ops/professor_provider_credentials.py",
+      "sha256": "428e1f52c49eae870a75ed2f665a464790ba8225a537a982653e53ddb98e6e8e"
+    },
+    {
+      "path": "config/professor-server-credentials.json",
+      "sha256": "691430dc80ba2e52422a39a33ab632d390593a57df0564d23148326341b9c20b"
+    },
+    {
+      "path": "config/professor-required-provider-storage.json",
+      "sha256": "1f4a4fd8a413090701b6b3f2d50a73dabb7c36fa18390cd8027e741549d4a872"
+    },
+    {
+      "path": "tests/test_earth_engine_keyless_adc.py",
+      "sha256": "9c5605d642c91310aeea7bafa1af8a0ef9a0321574d837e80f77cf8746601577"
+    },
+    {
+      "path": "tests/test_professor_required_providers.py",
+      "sha256": "414444c3bd999302708270439e66310ce127d1f7e5a98ca91889756ed9ebc915"
+    },
+    {
+      "path": "tests/test_professor_provider_credentials.py",
+      "sha256": "2598ae9615932b59a66b2c4f5d549c2703e3d4cc48f0ed02f0e54585e55b0dfc"
+    },
+    {
+      "path": "docs/operations/professor-stage5/earth-engine-keyless-adc.md",
+      "sha256": "4dd27d2fa1e6b03344864817e15aa96cebaab9c8aad88990ce55db9d08ac81da"
+    }
+  ],
+  "remaining_gates": [
+    "operator source IAM/API verification",
+    "approved protected impersonation ADC preparation",
+    "source reauthentication policy suitable for unattended use",
+    "operator existing-image offline ADC probe",
+    "separate live token refresh/renewal acceptance",
+    "parallel hardening owner boot ordering and real reboot acceptance",
+    "separate provider functional acceptance before activation"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "python_ast": [
+    "services/professor_adoption_plan.py",
+    "scripts/ops/professor_stage5.py",
+    "tests/test_professor_adoption_plan.py"
+  ],
+  "diff_check": "PASS",
+  "frontend_next_env_preserved": true,
+  "host_cloud_network_database_changes": false,
+  "secret_values_read": false,
+  "fullsuite_rerun": false,
+  "final_source_recheck": "PASS"
+}

@@ -1,0 +1,83 @@
+{
+  "schema": "professor-public-auth-origin-reference-scan-v1",
+  "frontend_origin": "https://proptech-ai-copilot.vercel.app",
+  "release_commit": "9cc40d645757af4513d9afdf0c008939cc489a77",
+  "asset_hashes_match_reviewed_observation": true,
+  "asset_count": 13,
+  "public_supabase_origins": [
+    "https://flyhsjcynreuofbcdxod.supabase.co"
+  ],
+  "source_assets": [
+    {
+      "path": "/_next/static/immutable/chunks/0a2wclaft8gj6.js",
+      "sha256": "1397a7f8163b62c78603274411c7fba78021d56dae36d9b926500835dd78e8fd",
+      "supabase_origins": [
+        "https://flyhsjcynreuofbcdxod.supabase.co"
+      ]
+    },
+    {
+      "path": "/_next/static/immutable/chunks/0c0hxoamwjsbw.js",
+      "sha256": "0973c1d64c88adc8e3c950410cb58b288f72118d5965b78049438deb8f2f9683",
+      "supabase_origins": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/0wzlajdwbtqir.js",
+      "sha256": "63124392178c1b87e9e6906af186d2a44a4c33b147db66a56baf830c30d9b07f",
+      "supabase_origins": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/10a-526l5gmua.js",
+      "sha256": "dfeec6cb9e13c6a1a0edaaa74e87b6baed7e714a029839f1ee1d36d102bf73c9",
+      "supabase_origins": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/1m4w77skc3fbp.js",
+      "sha256": "c29f23c5e364fb1144a515a2ff16fffb6b1f7380401703e6b3072dfbcd93689a",
+      "supabase_origins": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/2-fqapvpacn86.js",
+      "sha256": "f0d648fefd3935182d46d9ab5d5c4d85638665e327a34ecfee6660d11c19ebc3",
+      "supabase_origins": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/24eovwj7h-l_s.js",
+      "sha256": "9b0b2a8514c58d1bde0969b7b9f71f2d75dc788dca5aa2b7ad5f78090c780ba9",
+      "supabase_origins": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/258knkf-wsb82.js",
+      "sha256": "169cddfe25c5e1ad43e338460f49d8479f493857d8f13485cbd112ef76e6ba8f",
+      "supabase_origins": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/28_mshq0x50li.js",
+      "sha256": "39cf21f28d4ca1104c5f229e12bc5e61003ed42db7d2c6a10aa09d0567a4c7ba",
+      "supabase_origins": [
+        "https://flyhsjcynreuofbcdxod.supabase.co"
+      ]
+    },
+    {
+      "path": "/_next/static/immutable/chunks/2fzm8tbm2hykh.js",
+      "sha256": "a5df40735fc754aeb70b41079bc47e1081cef8ceb617830906c92065b9b4b697",
+      "supabase_origins": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/3mixgk7f4asc-.js",
+      "sha256": "2089541a057ff6005e0319865b089b3716d80d3efb15d7f57f40824a3332804f",
+      "supabase_origins": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/3nhbfvvlm0bdj.js",
+      "sha256": "ee24b3bdb085f1392273db9a77df7b7a5c8eb63812e9075922b28dfdfe30a71a",
+      "supabase_origins": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/turbopack-1cvbnb3nlabgn.js",
+      "sha256": "8bbb58cbfd4633c1d828c6bc37bc32abc768a149c01b1dfc4f5131fd81274551",
+      "supabase_origins": []
+    }
+  ],
+  "credential_values_returned": false,
+  "authority_inference_from_strings_alone": false
+}

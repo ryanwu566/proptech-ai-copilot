@@ -1,0 +1,22 @@
+# PREPARED ONLY. Append after the actual Stage4A override, never apply alone.
+# API image/entrypoint/six secrets, DB volumes and 127.0.0.1:8080 stay unchanged.
+# No public443 Docker mapping: a separately gated host nginx terminates TLS.
+services:
+  api:
+    environment:
+      API_ALLOWED_HOSTS: "${PROFESSOR_APPROVED_API_HOSTS:?reviewed exact host union required}"
+      CORS_ALLOWED_ORIGINS: "${PROFESSOR_APPROVED_CORS_ORIGINS:?reviewed exact origin list required}"
+  reverse_proxy:
+    volumes:
+      - type: bind
+        source: /etc/proptech-selfhost/public-inner-nginx.conf
+        target: /etc/nginx/nginx.conf
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /run/proptech-ml
+        target: /run/proptech-ml
+        read_only: true
+        bind:
+          create_host_path: false

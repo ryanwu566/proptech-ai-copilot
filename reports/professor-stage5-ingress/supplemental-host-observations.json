@@ -1,0 +1,83 @@
+{
+  "schema": "professor-stage5-host-metadata-v1",
+  "service_metadata": {
+    "docker": {
+      "service_metadata": [
+        "active",
+        "enabled"
+      ],
+      "exit_code": 0
+    },
+    "nginx": {
+      "service_metadata": [
+        "active",
+        "enabled"
+      ],
+      "exit_code": 0
+    },
+    "ufw": {
+      "service_metadata": [
+        "active",
+        "enabled"
+      ],
+      "exit_code": 0
+    }
+  },
+  "ipv6_by_interface": {
+    "lo": [
+      "::1"
+    ],
+    "enp2s0": [
+      "fe80::52eb:f6ff:feef:cba8"
+    ],
+    "wlo1": [],
+    "docker0": [
+      "fe80::3c3a:acff:fe9b:db25"
+    ],
+    "br-0d7e0c4475db": [
+      "fe80::40d6:24ff:fed5:57c3"
+    ],
+    "br-0dbb88f17f8f": [
+      "fe80::5c8d:34ff:fe36:26cc"
+    ],
+    "br-69ee079ce73a": [
+      "fe80::dc4b:a2ff:fe19:6747"
+    ],
+    "veth8056ef1": [
+      "fe80::b0c1:fbff:feac:2a99"
+    ],
+    "vethd98cceb": [
+      "fe80::ecd5:c1ff:fe4a:4c89"
+    ],
+    "vetha993b3e": [
+      "fe80::a45a:bdff:fedb:c8f8"
+    ],
+    "veth4b1a8f5": [
+      "fe80::c:61ff:fee0:6d1e"
+    ],
+    "veth2bb46a8": [
+      "fe80::7411:36ff:fe77:6a4a"
+    ],
+    "vethe9bddcf": [
+      "fe80::3c9a:9fff:fe66:b113"
+    ]
+  },
+  "global_ipv6_route_test": "UNREACHABLE",
+  "ml_process_metadata": [
+    {
+      "pid": 4109064,
+      "uid": 1000,
+      "interactive_session_scope": true,
+      "argv_or_environment_exported": false
+    }
+  ],
+  "persistent_db_tls_recovery_metadata": {
+    "path": "/etc/proptech-selfhost/tls",
+    "metadata_accessible": false,
+    "contents_read": false,
+    "trusted_recovery_verified": false
+  },
+  "docker_socket_accessible": false,
+  "host_changes": false,
+  "secret_values_read": false
+}

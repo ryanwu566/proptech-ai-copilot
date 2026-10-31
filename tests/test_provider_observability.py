@@ -90,3 +90,35 @@ def test_valuation_observation_keeps_actual_nested_freshness(monkeypatch):
     response = {"valuation_status": "available", "valuation_reason_code": "official_result_available", "source_details": {"backend": "green"}, "data_status": {"freshness_status": "stale"}}
     assert provider_observability.observe_response("valuation", response) is response
     assert registry.snapshot()["valuation"]["freshness"] == "stale"
+
+
+def test_photo2_image_success_keeps_unknown_vintage_and_failure_history(monkeypatch):
+    from services import provider_observability as observations
+    registry = observations.ProviderObservations()
+    monkeypatch.setattr(observations, "provider_observations", registry)
+    response = {"provider": "nlsc_photo2", "status": "unavailable", "reason_code": "provider_timeout", "image_reference": None}
+    observations.observe_response("satellite", response)
+    failed = registry.snapshot()["satellite"]
+    assert failed["last_success"] is None and failed["last_failure"]
+    response.update(status="limited", reason_code="vintage_unknown", image_reference="data:image/jpeg;base64,synthetic")
+    assert observations.observe_response("satellite", response) is response
+    success = registry.snapshot()["satellite"]
+    assert success["last_success"] == success["checked_at"]
+    assert success["last_failure"] == failed["last_failure"]
+    assert success["status"] == "limited" and success["freshness"] == "unknown"
+    assert "image_reference" not in success
+    for status, reason, image in [("limited", "vintage_unknown", None), ("limited", "vintage_unknown", ""), ("unavailable", "provider_timeout", None), ("error", "provider_error", "data:image/jpeg;base64,synthetic")]:
+        response.update(status=status, reason_code=reason, image_reference=image)
+        observations.observe_response("satellite", response)
+        failed_again = registry.snapshot()["satellite"]
+        assert failed_again["last_success"] == success["last_success"]
+        assert failed_again["last_failure"] == failed_again["checked_at"]
+
+
+def test_other_limited_providers_keep_existing_failure_semantics(monkeypatch):
+    from services import provider_observability as observations
+    registry = observations.ProviderObservations()
+    monkeypatch.setattr(observations, "provider_observations", registry)
+    observations.observe_response("satellite", {"provider": "csrsr_spot", "status": "limited", "reason_code": "vintage_unknown", "image_reference": "synthetic"})
+    record = registry.snapshot()["satellite"]
+    assert record["last_success"] is None and record["last_failure"]

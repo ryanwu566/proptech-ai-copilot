@@ -1,0 +1,21 @@
+# NOT ACTIVE until copied/reviewed on the Professor Server after hash checks.
+# Merge AFTER /etc/proptech-selfhost/datasets.override.yml so the NLSC target
+# replaces the old X9 source mount. Recreate api only; never remove DB volumes.
+# Does not enable Terrain or any paid provider. Existing guards remain in force.
+services:
+  api:
+    environment:
+      WRA_FLOOD_LOCAL_ROOT: /srv/proptech/datasets/wra/flood/v1
+    volumes:
+      - type: bind
+        source: /srv/proptech-data/DB/Cloudflare R2/proptech-government-data/processed/nlsc/village-boundary/v1/features.json.gz
+        target: /srv/proptech/datasets/processed/nlsc/village-boundary/v1/features.json.gz
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /srv/proptech-data/DB/Cloudflare R2/proptech-government-data/processed/wra/flood/v1
+        target: /srv/proptech/datasets/wra/flood/v1
+        read_only: true
+        bind:
+          create_host_path: false

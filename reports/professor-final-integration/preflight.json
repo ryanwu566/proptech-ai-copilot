@@ -1,0 +1,53 @@
+{
+  "schema": "professor-preflight-v1",
+  "recorded_at": "2026-10-28T13:19:57.722906+00:00",
+  "baseline_head": "9cc40d645757af4513d9afdf0c008939cc489a77",
+  "initial_branch": "main",
+  "integration_branch": "server/final-data-integration-20261028",
+  "preexisting_modified_files": [
+    "frontend_next/next-env.d.ts"
+  ],
+  "system_filesystem": {
+    "device": "/dev/nvme0n1p2",
+    "size_gb": 117,
+    "available_gb": 73
+  },
+  "x9_mount": {
+    "device": "/dev/sdb2",
+    "filesystem": "exfat",
+    "read_only": true
+  },
+  "loopback_8080": true,
+  "postgres_host_listener": false,
+  "public_8080": false,
+  "other_existing_listeners": [
+    80,
+    3322
+  ],
+  "docker": {
+    "inspected": false,
+    "reason": "socket_permission_denied"
+  },
+  "sudo": {
+    "available": false,
+    "reason": "interactive_authentication_required"
+  },
+  "server_copy_access": false,
+  "protected_env_access": false,
+  "protected_backup_access": false,
+  "requested_backup_evidence_root": "/var/backups/proptech-selfhost/final-data-integration",
+  "backup_evidence_created": false,
+  "environment_values_printed": false,
+  "environment_categories_from_configuration": [
+    "database URLs (secret-backed)",
+    "TLS/CA paths",
+    "NLSC artifact path/hash/vintage",
+    "anti-abuse kill switches",
+    "local frontend CORS",
+    "valuation secret injection"
+  ],
+  "actual_runtime_environment_inspected": false,
+  "host_modified": false,
+  "dev_sda_touched": false,
+  "source_modified": false
+}

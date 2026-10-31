@@ -14,6 +14,7 @@ import math
 import os
 from typing import Any, Protocol
 
+from services.plvr_serving_quality import serving_sql
 from services.plvr_data_integrity import (
     canonical_region_storage_keys,
     current_transaction_period,
@@ -118,13 +119,13 @@ class PostgresMarketSegmentationRepository:
     def segment(self, filters: dict[str, Any]) -> dict[str, Any]:
         params = _query_params(filters, as_of=self.as_of)
         with _read_only_cursor(self) as cursor:
-            cursor.execute(SEGMENT_SQL, params)
+            cursor.execute(serving_sql(SEGMENT_SQL), params)
             return dict(cursor.fetchone() or {})
 
     def comparables(self, filters: dict[str, Any], limit: int) -> list[dict[str, Any]]:
         params = {**_query_params(filters, as_of=self.as_of), "limit": max(1, min(int(limit), 10))}
         with _read_only_cursor(self) as cursor:
-            cursor.execute(COMPARABLES_SQL, params)
+            cursor.execute(serving_sql(COMPARABLES_SQL), params)
             return [dict(row) for row in cursor.fetchall()]
 
     def _connect(self):

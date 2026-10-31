@@ -1,0 +1,98 @@
+{
+  "checked_at": "2026-10-29T02:18:13.036936+00:00",
+  "base_url": "http://127.0.0.1:8080",
+  "checks": {
+    "valuation": {
+      "status": "PASS",
+      "http": 200,
+      "valuation_status": "available",
+      "source": "postgres",
+      "query_status": "ok",
+      "result_counts": {
+        "methodology": 3,
+        "comparables": 10
+      }
+    },
+    "trend": {
+      "status": "PASS",
+      "http": 200,
+      "trend_status": "available",
+      "source": "official_plvr_opendata",
+      "query_status": "ok",
+      "result_counts": {
+        "yearly_series": 4,
+        "methodology": 3,
+        "monthly_series": 29
+      }
+    },
+    "finder": {
+      "status": "PASS",
+      "http": 200,
+      "search_status": "available",
+      "source": null,
+      "query_status": "ok",
+      "result_counts": {
+        "district_suggestions": 1,
+        "road_suggestions": 30,
+        "matched_transactions": 5
+      }
+    },
+    "market_road": {
+      "status": "PASS",
+      "http": 200,
+      "data_status": "available",
+      "coverage_status": "covered",
+      "transaction_count": 370,
+      "average_unit_price": 44.71,
+      "reason_code": null
+    },
+    "market_known_special_period": {
+      "status": "PASS",
+      "http": 200,
+      "data_status": "no_data",
+      "coverage_status": "covered",
+      "transaction_count": null,
+      "average_unit_price": null,
+      "reason_code": "market_summary_missing"
+    },
+    "wra_matched": {
+      "status": "PASS",
+      "http": 200,
+      "matched": true,
+      "level": "medium",
+      "provenance": {
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "13b0bf6e0029259ead7e6fd4688ac030f5a2f500a171418f59377c50033cf631",
+        "data_vintage": "unknown",
+        "scenario": "24h-350mm",
+        "match_semantics": "point_intersects_scenario_polygon"
+      }
+    },
+    "wra_no_match": {
+      "status": "PASS",
+      "http": 200,
+      "matched": false,
+      "level": "unknown",
+      "provenance": {
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "13b0bf6e0029259ead7e6fd4688ac030f5a2f500a171418f59377c50033cf631",
+        "data_vintage": "unknown",
+        "scenario": "24h-350mm",
+        "match_semantics": "point_intersects_scenario_polygon"
+      }
+    },
+    "/health": {
+      "status": "PASS",
+      "http": 200,
+      "result": "ok"
+    },
+    "/readiness": {
+      "status": "PASS",
+      "http": 200,
+      "result": "ready"
+    }
+  },
+  "paid_provider_requests": 0
+}

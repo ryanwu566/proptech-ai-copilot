@@ -72,6 +72,9 @@ def measure_journey(monkeypatch, modules=None):
         def fetch(self, query):
             counts["satellite"] += 1
             return modules.satellite.SatelliteAdapterResult(b"\xff\xd8fixture-jpeg\xff\xd9")
+    # This journey measures the accepted EE completed-result cache, not PHOTO2's
+    # on-demand, unknown-vintage result (limited, with no completed-image cache).
+    monkeypatch.setenv("SATELLITE_REFERENCE_PROVIDER", "earth_engine")
     satellite_adapter = SatelliteAdapter()
     tiles = modules.ardswc.ArdswcSlopeHazardProvider(http_get=tile_fetch, decoder=tile_decode)
     geology = modules.geology.GeologyCloudProvider(http_get=geology_fetch)
@@ -97,6 +100,7 @@ def measure_journey(monkeypatch, modules=None):
             satellite = asyncio.run(modules.satellite.fetch_satellite_reference(latitude=25.033, longitude=121.5654,
                 now=datetime(2026, 10, 8, 4, tzinfo=timezone.utc), adapter=satellite_adapter))
             assert satellite.status == "available"
+            assert satellite.provider == "earth_engine"
             snapshots.append(dict(counts))
     modules.routes.clear_route_cache()
     return snapshots

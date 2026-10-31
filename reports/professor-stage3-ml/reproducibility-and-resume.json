@@ -1,0 +1,84 @@
+{
+  "status": "PASS",
+  "model_bytes_identical_across_frozen_code_runs": true,
+  "array_hashes_identical": true,
+  "evaluation_identical": true,
+  "final_checkpoint_reused": true,
+  "resumed_model_version": "plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7",
+  "manifest_sha256": "54eba6a04069b0f8d569c2fe62bbe1ca70771b5594cb220e908e9f7e3524fac4",
+  "initial_corrected_fit_seconds": 152.20966208504979,
+  "resume_seconds": 21.32701548107434,
+  "checkpoint_certificates": {
+    "final-model.json": {
+      "binding": "90707d210170664cde4e0cd71b2b272ff08c15065aab7fd11a74cd37c509998b",
+      "iterations": 500,
+      "model_sha256": "dcc6587c76b332e8f5ac800f8585972a723998edd4a84430fca5521f8d3fc95e",
+      "selected": "lightgbm_log_l1_leaves63"
+    },
+    "lightgbm_log_l1_leaves63.json": {
+      "binding": "71f7874b9f840d83fbe13cca9118a337a5d4fccf12aa88083ca59eb11211a97f",
+      "iterations": 500,
+      "metrics": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1254980.4727052245,
+          "p50": 32806.29055833795,
+          "p75": 62499.30082811891,
+          "p90": 107688.45163700382,
+          "p95": 144752.9472323971,
+          "p99": 254265.35384570376
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.04964915363648,
+          "p75": 19.162253445248204,
+          "p90": 29.677925161526307,
+          "p95": 38.872005380682054,
+          "p99": 75.63786726976149
+        },
+        "mae_ntd_ping": 48405.286519025525,
+        "mape_percent": 14.884692936760814,
+        "median_absolute_error_ntd_ping": 32806.29055833795,
+        "median_absolute_percentage_error": 11.04964915363648,
+        "rmse_ntd_ping": 72855.75980795285,
+        "rows": 39552,
+        "signed_bias_ntd_ping": -19529.804180127794,
+        "smape_percent": 14.615200550495947,
+        "wape_percent": 13.988491866460443
+      },
+      "model_sha256": "4658d12db9e29bcbbe6187d10f85df92cafdc5b8f3b7f93a232c615fb6169437",
+      "num_leaves": 63
+    },
+    "lightgbm_log_l1_leaves31.json": {
+      "binding": "cf2d8abc23a842912fe96dbf72d59e3af89ad2da88c442751b3aa0a869223d9b",
+      "iterations": 500,
+      "metrics": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1215645.753041998,
+          "p50": 33067.34634622643,
+          "p75": 63450.86864781176,
+          "p90": 109113.64511007318,
+          "p95": 147202.74000517442,
+          "p99": 256408.66015284325
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.205719098750784,
+          "p75": 19.388047710253446,
+          "p90": 30.069413045279134,
+          "p95": 38.92758107969923,
+          "p99": 77.48324008830986
+        },
+        "mae_ntd_ping": 49065.47738890633,
+        "mape_percent": 15.092412687515745,
+        "median_absolute_error_ntd_ping": 33067.34634622643,
+        "median_absolute_percentage_error": 11.205719098750784,
+        "rmse_ntd_ping": 73879.54555910811,
+        "rows": 39552,
+        "signed_bias_ntd_ping": -19991.70110761698,
+        "smape_percent": 14.806044823068545,
+        "wape_percent": 14.17927835441996
+      },
+      "model_sha256": "1c73b79b8b587cd3d75a4b5058edfeead30500f8ec46417607e751dcb8191537",
+      "num_leaves": 31
+    }
+  },
+  "scope": "Same predeclared experiment repeated for integrity, not an independent holdout experiment."
+}

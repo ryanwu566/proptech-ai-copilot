@@ -1,0 +1,27 @@
+{
+  "evidence_class": "raw_source_only_not_live_db_reconciliation",
+  "matches": [
+    {
+      "source_file": "實價登錄 PLVR/02_extracted/115S2/f_lvr_land_a.csv",
+      "source_sha256": "142f58d9bccdfe065536219ee80b6a21f801aaf5c48480d2e1d3aa197af744cf",
+      "official_id": "RPWNMLNKNHLGFBF78EA",
+      "raw_special_note_present": true,
+      "related_party_note_present": true,
+      "normalizer_rejection_reason": null,
+      "legacy_normalizer_loses_note": true,
+      "facts": {
+        "city": "新北市",
+        "district": "新莊區",
+        "transaction_period": "2026-05",
+        "building_type": "華廈(10層含以下有電梯)",
+        "area_ping": 34.06,
+        "total_price": 345.59,
+        "unit_price_per_ping": 10.15,
+        "floor": 2
+      },
+      "address_sha256": "67e4149850c9e5ee69676c63bf178fcf64599613969aefe6b0b86279d8709610",
+      "expected_db_id_from_user": 38652,
+      "current_db_match_proven": false
+    }
+  ]
+}

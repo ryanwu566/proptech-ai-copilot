@@ -1,0 +1,16 @@
+{
+  "listeners": [
+    "127.0.0.1:8080"
+  ],
+  "postgres_host_listener": false,
+  "port_8080_loopback_only": true,
+  "frontend_next_env_preserved": true,
+  "frontend_next_env_sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
+  "frontend_next_env_excluded_from_commit": true,
+  "dev_sda_operations_in_this_acceptance": 0,
+  "apply_script_contains_no_device_write_commands": true,
+  "root_evidence_access": "BLOCKED",
+  "sudo_attempt": "noninteractive read-only evidence read denied; no further sudo attempts",
+  "full_test_suite_rerun": false,
+  "apply_rerun": false
+}

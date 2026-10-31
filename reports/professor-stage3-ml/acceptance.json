@@ -1,0 +1,809 @@
+{
+  "artifact": {
+    "artifact_path": "/home/andy/proptech-model-artifacts/plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7",
+    "dataset_fingerprint": "bccf2ec1bc19110b9f55e35c3eaec284c2ad57a97318acea7381c5be5002ccee",
+    "feature_contract_version": "plvr-gross-transfer-features-v1",
+    "files": {
+      "contract.json": "5531a9e2cf1a1c9adc04cca8c415172d878de6e0b83efea7a488ac5688696858",
+      "metadata.json": "2d7f526512f51a8707285fdafb5c57a5ff48d7cf6359b7d0342f5966ade7fa4c",
+      "model.txt": "dcc6587c76b332e8f5ac800f8585972a723998edd4a84430fca5521f8d3fc95e",
+      "preprocessing.json": "9c7e4a336b489a6d7f1fd271c6041a11b06dd1eaf14bec98c3de956a5504ddee"
+    },
+    "fitting_checkpoint_identity": "6493b5f70de0cacfe578018f0f189c90d97f609dd4a36e6525692321e23116f3",
+    "generated_at": "2026-10-29T14:48:18.717429+00:00",
+    "libraries": {
+      "fastapi": "0.162.0",
+      "lightgbm": "4.6.0",
+      "numpy": "2.5.4",
+      "pydantic": "2.14.1",
+      "python": "3.12.16",
+      "scikit-learn": "1.7.2",
+      "scipy": "1.18.1"
+    },
+    "manifest_sha256": "54eba6a04069b0f8d569c2fe62bbe1ca70771b5594cb220e908e9f7e3524fac4",
+    "model_format": "native LightGBM text + JSON; no pickle",
+    "model_sha256": "dcc6587c76b332e8f5ac800f8585972a723998edd4a84430fca5521f8d3fc95e",
+    "model_version": "plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7",
+    "read_only_immutable": true,
+    "schema": "stage3-local-model-artifact-manifest-v1",
+    "size_bytes": 3724642,
+    "status": "PASS"
+  },
+  "artifact_regenerated_during_closure": false,
+  "assessment": "COMPLETE under the user-authorized reduced-scope v1 criteria. Exact-byte audit, focused regressions, live API acceptance and independent review close the three items by explicit claim restrictions, without fabricating evidence or altering the fitted model.",
+  "baseline_head": "ff3b1df23ccc91d628911491b8ee2f5133c0e7cf",
+  "bounded_closure": {
+    "audit_resource_usage": {
+      "nice": 15,
+      "peak_rss_bytes": 85073920,
+      "seconds": 112.70295919605996,
+      "sqlite_cache_bytes": 16777216,
+      "workers": 1
+    },
+    "completion_criteria": {
+      "dataset_admission_defensible": "PASS",
+      "dwelling_scope_restricted_not_inferred": "PASS",
+      "inference_operational": "PASS",
+      "limitations_documented": "PASS",
+      "no_known_related_party_or_special_training_rows": "PASS",
+      "no_unsupported_API_or_model_card_claim": "PASS",
+      "parking_removed_from_features": "PASS",
+      "publication_revision_explicitly_bounded": "PASS",
+      "temporal_and_feature_parity_rules": "PASS",
+      "unsupported_inputs_reject": "PASS",
+      "versioned_reproducible_artifact_retained": "PASS"
+    },
+    "enforcement": {
+      "cancellation_event_ledger_available": false,
+      "cancellation_handling": "exclude_observed_conflicts_and_note_tainted_families",
+      "current_cancellation_state_verified": false,
+      "evidence_contract_version": "plvr-bounded-transfer-evidence-v1",
+      "historical_pit_supported": false,
+      "parking_exclusive_value_supported": false,
+      "parking_features_included": false,
+      "partial_rights_valuation_supported": false,
+      "publication_evidence": "bounded_archive_snapshot",
+      "requested_value_basis": "reported_transfer",
+      "rights_basis": "reported_transfer_only_rights_unverified",
+      "total_price_basis": "unit_estimate_times_reported_registered_transferred_area",
+      "unobserved_cancellation_risk": "not_eliminated",
+      "whole_dwelling_value_supported": false,
+      "whole_property_scaling_supported": false
+    },
+    "evidence_audit": "bounded-evidence-audit.json",
+    "evidence_contract_version": "plvr-bounded-transfer-evidence-v1",
+    "focused_tests": {
+      "files": [
+        "tests/test_stage3_bounded_scope.py",
+        "tests/test_stage3_ml_admission.py",
+        "tests/test_stage3_ml_training.py",
+        "tests/test_stage3_ml_api.py",
+        "tests/test_plvr_historical_dataset.py",
+        "tests/test_ml_semantic_temporal_closure.py",
+        "tests/test_ml_authoritative_history.py"
+      ],
+      "full_repository_suite_run": false,
+      "historical_dataset_build_run": false,
+      "passed": 255,
+      "status": "PASS",
+      "summary": "255 passed, 1 warning in 27.79s",
+      "training_run": false
+    },
+    "independent_review": {
+      "final_clearance": "COMPLETE justified after verified audit, 255 focused tests and updated live envelope; reviewer verified final evidence, live model/pin, health and frontend preservation.",
+      "remaining_critical_or_important_findings": 0,
+      "reviewed_fixes": [
+        "Bind current summary and artifact checksums to frozen prior admission before streaming",
+        "Remove unsupported explicit-event-ingestion wording; expose event-ledger unavailable"
+      ],
+      "reviewer": "stage3_review",
+      "status": "PASS"
+    },
+    "live_acceptance": "bounded-closure-live-acceptance.json",
+    "model_impact": {
+      "admitted_identities_and_splits_unchanged": true,
+      "all_artifact_file_hashes_unchanged": true,
+      "all_fitting_source_hashes_unchanged": true,
+      "api_scope_envelope_sha256": "af47a7ed7f254f8c67d33a68f72cc51834364ad66d6760c4a3be152e9092f79f",
+      "artifact_regenerated": false,
+      "audit_report_sha256": "31fa457185ed1cf7cf4017e4c22e3993ca0607558a7844cef921bcc4a9af41e5",
+      "audit_script_sha256": "d6625d996fb53b203522f01e938a13f7c591b7ccefc2d371660ef4a0274b65e4",
+      "decision": "Retain existing native model and artifact. API envelope only restricts requested claims; fitted inputs and original evaluation are unchanged.",
+      "feature_contract_sha256": "5531a9e2cf1a1c9adc04cca8c415172d878de6e0b83efea7a488ac5688696858",
+      "feature_contract_version": "plvr-gross-transfer-features-v1",
+      "frontend_sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
+      "holdout_rescored": false,
+      "manifest_sha256": "54eba6a04069b0f8d569c2fe62bbe1ca70771b5594cb220e908e9f7e3524fac4",
+      "model_retained": true,
+      "model_retrained": false,
+      "model_sha256": "dcc6587c76b332e8f5ac800f8585972a723998edd4a84430fca5521f8d3fc95e",
+      "model_version": "plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7",
+      "scope_policy_sha256": "93934a302f70b37a1a20d36ee92ad449fd30f47e1b7b676c4f53caa47dbe375c",
+      "status": "PASS"
+    },
+    "parking": "EXCLUDED FROM V1",
+    "publication_evidence": "BOUNDED",
+    "residual_risks": [
+      "Unreported cancellation or replacement events may remain in frozen archive observations.",
+      "Latent partial rights may remain among unverified transfer observations.",
+      "Parking effects are unseparated in gross consideration/registered area."
+    ],
+    "status": "PASS",
+    "whole_dwelling_rights": "RESTRICTED"
+  },
+  "branch": "ml/stage3-valuation-20261029",
+  "closure_baseline_head": "f6388c98413ac3a64e79031527e1fb0482b24017",
+  "completion_scope": "Bounded local reported gross-transfer NTD/registered-ping v1; excludes historical PIT, current legal validity, parking-exclusive, whole-property and share-specific valuation.",
+  "dataset": {
+    "actual_split_dates": {
+      "holdout": [
+        "2025-07-01",
+        "2026-06-30"
+      ],
+      "train": [
+        "2017-01-01",
+        "2024-05-31"
+      ],
+      "validation": [
+        "2024-07-01",
+        "2025-06-02"
+      ]
+    },
+    "admitted_rows": 716413,
+    "admitted_window": {
+      "end": "2026-06-30",
+      "historical_publication_proven": false,
+      "population_completeness_proven": false,
+      "rationale": "First full calendar year after the first retained release through the complete transaction quarter before the final release quarter; sparse older dates and the incomplete 2026 Q3 tail excluded. Archive coverage, not publication evidence.",
+      "release_count": 40,
+      "start": "2017-01-01"
+    },
+    "artifact_root": "/home/andy/proptech-ml-data/plvr-history/bccf2ec1bc19110b9f55e35c3eaec284c2ad57a97318acea7381c5be5002ccee",
+    "canonical_clean_rows": 1321059,
+    "excluded_from_v1": {
+      "inconsistent_floors": 2,
+      "invalid_area": 873,
+      "outside_release_supported_window": 120781,
+      "source_release_later_than_split_freeze": 33815,
+      "unsupported_building_type": 219732,
+      "unsupported_geography": 38235,
+      "unsupported_structure_or_geography": 11,
+      "unsupported_use": 191197
+    },
+    "final_fitted_rows": 673009,
+    "fingerprint": "bccf2ec1bc19110b9f55e35c3eaec284c2ad57a97318acea7381c5be5002ccee",
+    "known_related_party": {
+      "clean_occurrences": 0,
+      "disposition": "known_related_party_serial",
+      "legacy_serving_row": 38652,
+      "official_serial": "RPWNMLNKNHLGFBF78EA",
+      "raw_occurrences": 1
+    },
+    "split_counts": {
+      "holdout": 43404,
+      "train": 633457,
+      "validation": 39552
+    },
+    "split_definition": {
+      "holdout": {
+        "end": "2026-06-30",
+        "latest_source_release": "115S3",
+        "start": "2025-07-01"
+      },
+      "train": {
+        "end": "2024-06-30",
+        "latest_source_release": "113S2",
+        "start": "2017-01-01"
+      },
+      "validation": {
+        "end": "2025-06-30",
+        "latest_source_release": "114S2",
+        "start": "2024-07-01"
+      }
+    },
+    "status": "PASS"
+  },
+  "documentation": [
+    "docs/ml/stage3-admission-contract.md",
+    "docs/ml/stage3-evaluation-report.md",
+    "docs/ml/stage3-model-card.md",
+    "docs/ml/stage3-limitations.md",
+    "docs/ml/stage3-ml-api.md",
+    "docs/operations/stage3-ml-inference-runbook.md",
+    "docs/ml/stage3-bounded-evidence-closure.md"
+  ],
+  "engineering_and_bounded_inference_status": "PASS",
+  "evidence_files": [
+    "dataset-admission.json",
+    "independent-verification.json",
+    "known-related-party-integrity.json",
+    "evaluation.json",
+    "serving-coverage-evaluation.json",
+    "model-artifact-manifest.json",
+    "live-inference-acceptance.json",
+    "live-runtime-during-training.json",
+    "reproducibility-and-resume.json",
+    "environment.lock.txt",
+    "verification-resources.txt",
+    "preparation-resources.txt",
+    "training-resources.txt",
+    "checkpoint-resume-resources.txt",
+    "bounded-evidence-audit.json",
+    "bounded-closure-model-impact.json",
+    "bounded-closure-live-acceptance.json",
+    "bounded-audit-resources.txt",
+    "bounded-closure-review.json"
+  ],
+  "excluded_future_capabilities": [
+    "Authenticated historical PIT and exhaustive cancellation/current-validity guarantees",
+    "Parking price/area separation and parking-exclusive valuation",
+    "Verified whole-dwelling/full-property or share-specific valuation"
+  ],
+  "feature_contract": {
+    "excluded_features": [
+      "parking",
+      "rights",
+      "address",
+      "road",
+      "community",
+      "lat_lon",
+      "target_aggregates"
+    ],
+    "features": [
+      "month_index",
+      "log_area_ping",
+      "floor",
+      "total_floor",
+      "age_years",
+      "floor_ratio",
+      "city",
+      "geography",
+      "building_type"
+    ],
+    "main_use_required": "住家用",
+    "missing_values": "Preserved; no physical zero or parking/rights imputation.",
+    "shared_training_inference": true,
+    "target": "reported-gross-transfer-ntd-per-registered-ping-v1",
+    "version": "plvr-gross-transfer-features-v1"
+  },
+  "frontend_ml_connected": false,
+  "generated_at": "2026-10-29T15:32:21.856487+00:00",
+  "git_head_at_validation": "d6299ce8866a5097658eb1fb50bd46ff456a4d78",
+  "holdout": {
+    "baseline": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 1870648.6316826767,
+        "p50": 58133.74866405039,
+        "p75": 108175.20843017663,
+        "p90": 166933.31133565487,
+        "p95": 210041.1313741161,
+        "p99": 399112.365447783
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 17.871436707561017,
+        "p75": 33.16142191022543,
+        "p90": 61.56418956705064,
+        "p95": 92.98610683523273,
+        "p99": 211.10531003602844
+      },
+      "mae_ntd_ping": 79668.86983056915,
+      "mape_percent": 29.514299698483164,
+      "median_absolute_error_ntd_ping": 58133.74866405039,
+      "median_absolute_percentage_error": 17.871436707561017,
+      "rmse_ntd_ping": 115440.68704953317,
+      "rows": 43404,
+      "signed_bias_ntd_ping": 1730.064990531889,
+      "smape_percent": 24.010822680367472,
+      "wape_percent": 22.310697688028508
+    },
+    "interpretation": "Retrospective archive-snapshot temporal generalization; not historically public-information/PIT evaluation.",
+    "metrics": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 1329700.5944495513,
+        "p50": 32038.092827131113,
+        "p75": 60725.79606844326,
+        "p90": 104451.28109553183,
+        "p95": 145554.02241835007,
+        "p99": 261922.43627612607
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 10.5644758024775,
+        "p75": 18.84672809258368,
+        "p90": 30.436856227180908,
+        "p95": 41.333145341172035,
+        "p99": 80.84890381998619
+      },
+      "mae_ntd_ping": 47731.31071107794,
+      "mape_percent": 14.855654950759307,
+      "median_absolute_error_ntd_ping": 32038.092827131113,
+      "median_absolute_percentage_error": 10.5644758024775,
+      "rmse_ntd_ping": 73722.11613240164,
+      "rows": 43404,
+      "signed_bias_ntd_ping": -2868.6527126899155,
+      "smape_percent": 13.876179289360696,
+      "wape_percent": 13.366812480118865
+    },
+    "serving_support_coverage": {
+      "abstained_rows": 551,
+      "abstained_rows_diagnostic_metrics": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 472728.21195197647,
+          "p50": 28210.198408188502,
+          "p75": 44670.56535460039,
+          "p90": 69621.08809567268,
+          "p95": 84130.83037548629,
+          "p99": 142837.30847763555
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 14.507685639760737,
+          "p75": 23.761805108922545,
+          "p90": 40.73583546179966,
+          "p95": 62.941450337883865,
+          "p99": 178.67450426633297
+        },
+        "mae_ntd_ping": 34699.61161446423,
+        "mape_percent": 23.37126885281418,
+        "median_absolute_error_ntd_ping": 28210.198408188502,
+        "median_absolute_percentage_error": 14.507685639760737,
+        "rmse_ntd_ping": 51628.459398400606,
+        "rows": 551,
+        "signed_bias_ntd_ping": 1173.7913624246814,
+        "smape_percent": 19.136814241937245,
+        "wape_percent": 17.389285849525788
+      },
+      "all_holdout_metrics": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1329700.5944495513,
+          "p50": 32038.092827131113,
+          "p75": 60725.79606844326,
+          "p90": 104451.28109553183,
+          "p95": 145554.02241835007,
+          "p99": 261922.43627612607
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.5644758024775,
+          "p75": 18.84672809258368,
+          "p90": 30.436856227180908,
+          "p95": 41.333145341172035,
+          "p99": 80.84890381998619
+        },
+        "mae_ntd_ping": 47731.31071107794,
+        "mape_percent": 14.855654950759307,
+        "median_absolute_error_ntd_ping": 32038.092827131113,
+        "median_absolute_percentage_error": 10.5644758024775,
+        "rmse_ntd_ping": 73722.11613240164,
+        "rows": 43404,
+        "signed_bias_ntd_ping": -2868.6527126899155,
+        "smape_percent": 13.876179289360696,
+        "wape_percent": 13.366812480118865
+      },
+      "all_holdout_rows": 43404,
+      "scope": "Support-only policy, fixed before holdout scoring. Metrics for rejected rows are diagnostic, not served estimates. No tuning based on holdout.",
+      "status": "PASS",
+      "support_coverage_percent": 98.73053174822597,
+      "support_policy": {
+        "minimum_fit_rows": 50,
+        "minimum_recent_36_month_rows": 20
+      },
+      "supported_holdout_metrics": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1329700.5944495513,
+          "p50": 32097.312560136663,
+          "p75": 60959.94272922017,
+          "p90": 104933.34540752508,
+          "p95": 146039.74248874024,
+          "p99": 262706.30217362096
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.513790167647972,
+          "p75": 18.788684009018606,
+          "p90": 30.308123746712344,
+          "p95": 41.11211069623576,
+          "p99": 80.03771825022282
+        },
+        "mae_ntd_ping": 47898.8711199696,
+        "mape_percent": 14.746161957035827,
+        "median_absolute_error_ntd_ping": 32097.312560136663,
+        "median_absolute_percentage_error": 10.513790167647972,
+        "rmse_ntd_ping": 73963.23260946017,
+        "rows": 42853,
+        "signed_bias_ntd_ping": -2920.630093162418,
+        "smape_percent": 13.808538520712768,
+        "wape_percent": 13.338073309230486
+      },
+      "supported_rows": 42853
+    },
+    "status": "PASS"
+  },
+  "inference": {
+    "base_url": "http://127.0.0.1:8081",
+    "bounded_envelope_acceptance": "PASS",
+    "concurrent_predictions": 1,
+    "confidence_probability": null,
+    "deterministic_requests": 25,
+    "estimate_endpoint": "/valuation/ml/v1/estimate",
+    "is_actionable": false,
+    "lazy_local_model": true,
+    "legacy_8080_health": "ready",
+    "legacy_comparable_endpoint": {
+      "http_status": 200,
+      "is_actionable": true,
+      "result_origin": "official",
+      "valuation_status": "available"
+    },
+    "listener": "127.0.0.1:8081",
+    "live_api_8080_restarted": false,
+    "model_version": "plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7",
+    "pid": 4109064,
+    "prediction_threads": 1,
+    "scope": {
+      "cancellation_event_ledger_available": false,
+      "cancellation_handling": "exclude_observed_conflicts_and_note_tainted_families",
+      "current_cancellation_state_verified": false,
+      "evidence_contract_version": "plvr-bounded-transfer-evidence-v1",
+      "historical_pit_supported": false,
+      "parking_exclusive_value_supported": false,
+      "parking_features_included": false,
+      "partial_rights_valuation_supported": false,
+      "publication_evidence": "bounded_archive_snapshot",
+      "requested_value_basis": "reported_transfer",
+      "rights_basis": "reported_transfer_only_rights_unverified",
+      "total_price_basis": "unit_estimate_times_reported_registered_transferred_area",
+      "unobserved_cancellation_risk": "not_eliminated",
+      "whole_dwelling_value_supported": false,
+      "whole_property_scaling_supported": false
+    },
+    "standalone_process_reboot_persistence": "Not installed as a boot service; runbook gives user-level start/stop/restart procedure.",
+    "status": "PASS",
+    "status_endpoint": "/valuation/ml/v1/status",
+    "warm_latency_seconds": {
+      "max": 0.004080423968844116,
+      "p50": 0.0022062630159780383,
+      "p95": 0.003260400961153209
+    }
+  },
+  "local_implementation_commits": [
+    "7b98021e774063fd3dfc90a249286e4f90a0e7e6",
+    "a4d12a141b876eadeda1f82aabb3599c98ca3e2d",
+    "b8cb57e27683de80a738192fbdec129007b78787",
+    "d6299ce8866a5097658eb1fb50bd46ff456a4d78"
+  ],
+  "model_retrained_during_closure": false,
+  "models_compared": {
+    "global_median": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 2040104.8281809355,
+        "p50": 97456.49825345531,
+        "p75": 193843.5888045139,
+        "p90": 372193.41585139924,
+        "p95": 514453.24335008144,
+        "p99": 824974.6916001147
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 35.27474779729289,
+        "p75": 52.690790392403315,
+        "p90": 69.22650412877225,
+        "p95": 77.68565539170393,
+        "p99": 154.15493506493445
+      },
+      "mae_ntd_ping": 154208.60855336752,
+      "mape_percent": 39.22722438948184,
+      "median_absolute_error_ntd_ping": 97456.49825345531,
+      "median_absolute_percentage_error": 35.27474779729289,
+      "rmse_ntd_ping": 232686.24383454316,
+      "rows": 39552,
+      "signed_bias_ntd_ping": -131375.12017529592,
+      "smape_percent": 46.008918008237515,
+      "wape_percent": 44.564261914638294
+    },
+    "lightgbm_log_l1_leaves31": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 1215645.753041998,
+        "p50": 33067.34634622643,
+        "p75": 63450.86864781176,
+        "p90": 109113.64511007318,
+        "p95": 147202.74000517442,
+        "p99": 256408.66015284325
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 11.205719098750784,
+        "p75": 19.388047710253446,
+        "p90": 30.069413045279134,
+        "p95": 38.92758107969923,
+        "p99": 77.48324008830986
+      },
+      "mae_ntd_ping": 49065.47738890633,
+      "mape_percent": 15.092412687515745,
+      "median_absolute_error_ntd_ping": 33067.34634622643,
+      "median_absolute_percentage_error": 11.205719098750784,
+      "rmse_ntd_ping": 73879.54555910811,
+      "rows": 39552,
+      "signed_bias_ntd_ping": -19991.70110761698,
+      "smape_percent": 14.806044823068545,
+      "wape_percent": 14.17927835441996
+    },
+    "lightgbm_log_l1_leaves63": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 1254980.4727052245,
+        "p50": 32806.29055833795,
+        "p75": 62499.30082811891,
+        "p90": 107688.45163700382,
+        "p95": 144752.9472323971,
+        "p99": 254265.35384570376
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 11.04964915363648,
+        "p75": 19.162253445248204,
+        "p90": 29.677925161526307,
+        "p95": 38.872005380682054,
+        "p99": 75.63786726976149
+      },
+      "mae_ntd_ping": 48405.286519025525,
+      "mape_percent": 14.884692936760814,
+      "median_absolute_error_ntd_ping": 32806.29055833795,
+      "median_absolute_percentage_error": 11.04964915363648,
+      "rmse_ntd_ping": 72855.75980795285,
+      "rows": 39552,
+      "signed_bias_ntd_ping": -19529.804180127794,
+      "smape_percent": 14.615200550495947,
+      "wape_percent": 13.988491866460443
+    },
+    "recent_district_type_median": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 1376465.6161063751,
+        "p50": 56694.33771843983,
+        "p75": 104320.69203509076,
+        "p90": 163076.88754024103,
+        "p95": 207875.8725552778,
+        "p99": 338169.78915004065
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 18.18626609985517,
+        "p75": 30.517584028494106,
+        "p90": 48.49206559872097,
+        "p95": 76.73828173651022,
+        "p99": 186.37888496417605
+      },
+      "mae_ntd_ping": 76190.73151039344,
+      "mape_percent": 26.524456323301536,
+      "median_absolute_error_ntd_ping": 56694.33771843983,
+      "median_absolute_percentage_error": 18.18626609985517,
+      "rmse_ntd_ping": 106580.25835880982,
+      "rows": 39552,
+      "signed_bias_ntd_ping": -25485.715910912437,
+      "smape_percent": 23.746821680201784,
+      "wape_percent": 22.018120430170445
+    },
+    "ridge_log": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 1258649.0837270955,
+        "p50": 47310.71334109639,
+        "p75": 85471.19269604476,
+        "p90": 137322.9123772788,
+        "p95": 184901.80779644276,
+        "p99": 318726.25139187934
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 15.942924699679178,
+        "p75": 25.7900751928618,
+        "p90": 37.170777030489546,
+        "p95": 47.46160329486748,
+        "p99": 91.65913588723134
+      },
+      "mae_ntd_ping": 64815.127208662336,
+      "mape_percent": 19.74725969424392,
+      "median_absolute_error_ntd_ping": 47310.71334109639,
+      "median_absolute_percentage_error": 15.942924699679178,
+      "rmse_ntd_ping": 92806.54480591239,
+      "rows": 39552,
+      "signed_bias_ntd_ping": -22148.391254863483,
+      "smape_percent": 19.63108357482889,
+      "wape_percent": 18.730720237047045
+    }
+  },
+  "next_operator_action": null,
+  "next_operator_action_note": "None required for completed bounded local Stage 3. Frontend integration and stronger excluded claims are separate future scope.",
+  "original_acceptance_generated_at": "2026-10-29T14:53:52.654599+00:00",
+  "preparation_integration": {
+    "blind_merge": false,
+    "commit": "0ed553862c22ffcfe00efd88855dd97aceba21f5",
+    "integrated_files": [
+      "services/plvr_historical_dataset.py",
+      "scripts/ml/prepare_historical_transactions.py",
+      "tests/test_plvr_historical_dataset.py",
+      "docs/operations/plvr-local-history-staging.md"
+    ],
+    "merge_base": "ff3b1df23ccc91d628911491b8ee2f5133c0e7cf",
+    "status": "PASS"
+  },
+  "previous_status": "PARTIAL",
+  "pushed": false,
+  "remaining_blockers": [],
+  "reproducibility_and_resume": {
+    "array_hashes_identical": true,
+    "checkpoint_certificates": {
+      "final-model.json": {
+        "binding": "90707d210170664cde4e0cd71b2b272ff08c15065aab7fd11a74cd37c509998b",
+        "iterations": 500,
+        "model_sha256": "dcc6587c76b332e8f5ac800f8585972a723998edd4a84430fca5521f8d3fc95e",
+        "selected": "lightgbm_log_l1_leaves63"
+      },
+      "lightgbm_log_l1_leaves31.json": {
+        "binding": "cf2d8abc23a842912fe96dbf72d59e3af89ad2da88c442751b3aa0a869223d9b",
+        "iterations": 500,
+        "metrics": {
+          "absolute_error_quantiles_ntd_ping": {
+            "p100": 1215645.753041998,
+            "p50": 33067.34634622643,
+            "p75": 63450.86864781176,
+            "p90": 109113.64511007318,
+            "p95": 147202.74000517442,
+            "p99": 256408.66015284325
+          },
+          "absolute_percentage_error_quantiles": {
+            "p50": 11.205719098750784,
+            "p75": 19.388047710253446,
+            "p90": 30.069413045279134,
+            "p95": 38.92758107969923,
+            "p99": 77.48324008830986
+          },
+          "mae_ntd_ping": 49065.47738890633,
+          "mape_percent": 15.092412687515745,
+          "median_absolute_error_ntd_ping": 33067.34634622643,
+          "median_absolute_percentage_error": 11.205719098750784,
+          "rmse_ntd_ping": 73879.54555910811,
+          "rows": 39552,
+          "signed_bias_ntd_ping": -19991.70110761698,
+          "smape_percent": 14.806044823068545,
+          "wape_percent": 14.17927835441996
+        },
+        "model_sha256": "1c73b79b8b587cd3d75a4b5058edfeead30500f8ec46417607e751dcb8191537",
+        "num_leaves": 31
+      },
+      "lightgbm_log_l1_leaves63.json": {
+        "binding": "71f7874b9f840d83fbe13cca9118a337a5d4fccf12aa88083ca59eb11211a97f",
+        "iterations": 500,
+        "metrics": {
+          "absolute_error_quantiles_ntd_ping": {
+            "p100": 1254980.4727052245,
+            "p50": 32806.29055833795,
+            "p75": 62499.30082811891,
+            "p90": 107688.45163700382,
+            "p95": 144752.9472323971,
+            "p99": 254265.35384570376
+          },
+          "absolute_percentage_error_quantiles": {
+            "p50": 11.04964915363648,
+            "p75": 19.162253445248204,
+            "p90": 29.677925161526307,
+            "p95": 38.872005380682054,
+            "p99": 75.63786726976149
+          },
+          "mae_ntd_ping": 48405.286519025525,
+          "mape_percent": 14.884692936760814,
+          "median_absolute_error_ntd_ping": 32806.29055833795,
+          "median_absolute_percentage_error": 11.04964915363648,
+          "rmse_ntd_ping": 72855.75980795285,
+          "rows": 39552,
+          "signed_bias_ntd_ping": -19529.804180127794,
+          "smape_percent": 14.615200550495947,
+          "wape_percent": 13.988491866460443
+        },
+        "model_sha256": "4658d12db9e29bcbbe6187d10f85df92cafdc5b8f3b7f93a232c615fb6169437",
+        "num_leaves": 63
+      }
+    },
+    "evaluation_identical": true,
+    "final_checkpoint_reused": true,
+    "initial_corrected_fit_seconds": 152.20966208504979,
+    "manifest_sha256": "54eba6a04069b0f8d569c2fe62bbe1ca70771b5594cb220e908e9f7e3524fac4",
+    "model_bytes_identical_across_frozen_code_runs": true,
+    "resume_seconds": 21.32701548107434,
+    "resumed_model_version": "plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7",
+    "scope": "Same predeclared experiment repeated for integrity, not an independent holdout experiment.",
+    "status": "PASS"
+  },
+  "resources": {
+    "corrected_training": {
+      "available_memory_bytes": 8752791552,
+      "elapsed_seconds": 152.20966208504979,
+      "free_disk_bytes": 62320193536,
+      "inference_threads": 1,
+      "max_training_threads": 2,
+      "nice": 15,
+      "peak_rss_bytes": 639385600
+    },
+    "inference_observed_rss_bytes": 233365504,
+    "live_8080_during_training": {
+      "health_max_seconds": 0.10888564703054726,
+      "health_p50_seconds": 0.03391630493570119,
+      "health_p95_seconds": 0.10154495190363377,
+      "minimum_available_ram_bytes": 8762900480,
+      "phase": "corrected_training_run",
+      "status": "PASS"
+    },
+    "preexisting_swap": "4 GiB already full before task; not modified; training resource reports record zero swaps.",
+    "production_health_preserved": true
+  },
+  "review": {
+    "declined_scope_ruling": "Boot persistence/public deployment are not claimed or required for the delivered local companion. Historical PIT and whole-dwelling claims remain unapproved. Root full verification and live/load/resume checks supply the evidence the reviewer did not repeat.",
+    "final_artifact_live_acceptance": "PASS",
+    "final_independent_clearance": "PASS; no remaining Critical or Important findings. Reviewer independently checked hashes, source hashes, metrics, support, live status/health, test logs and frontend preservation.",
+    "independent_reviewer": "stage3_review",
+    "original_important_findings": 3,
+    "regression_fixes": [
+      "Bound/atomic checkpoint reuse and publication",
+      "Semantic artifact metadata/provenance/support validation and safe status",
+      "Finite-safe bounded DTO errors across both entrypoints; no-store"
+    ],
+    "remaining_important_findings": 0,
+    "status": "PASS"
+  },
+  "safety": {
+    "dev_sda_operations": 0,
+    "external_plvr_downloads": 0,
+    "external_provider_calls": 0,
+    "frontend_committed": false,
+    "frontend_path": "frontend_next/next-env.d.ts",
+    "frontend_preserved_sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
+    "generated_datasets_or_model_binaries_in_git": false,
+    "legacy_api_restarted": false,
+    "lineage_sqlite_read_only_immutable": true,
+    "market_ops_enabled": false,
+    "optional_paid_providers_enabled": false,
+    "production_infrastructure_changes": false,
+    "production_serving_tables_mutated": false,
+    "source_data_modified": false,
+    "source_mount_access": false,
+    "sudo_attempts": 0,
+    "system_python_modified": false
+  },
+  "schema": "professor-server-stage3-acceptance-v2",
+  "status": "COMPLETE",
+  "tests": {
+    "broader_valuation_api_stage1_stage2_migrations": {
+      "log_path": "/home/andy/proptech-ai-copilot/.local/stage3/broader-tests-final.log",
+      "passed": 462,
+      "status": "PASS",
+      "summary": "462 passed, 1 warning in 19.51s"
+    },
+    "counts_overlap": true,
+    "focused_stage3": {
+      "log_path": "/home/andy/proptech-ai-copilot/.local/stage3/review-fixes-green.log",
+      "passed": 74,
+      "status": "PASS",
+      "summary": "74 passed, 1 warning in 4.23s"
+    },
+    "full_repository_suite_rerun": false,
+    "ml_regressions": {
+      "log_path": "/home/andy/proptech-ai-copilot/.local/stage3/ml-tests-final.log",
+      "passed": 517,
+      "status": "PASS",
+      "summary": "517 passed, 1 warning in 84.53s (0:01:24)"
+    },
+    "warning": "Existing Starlette/httpx TestClient deprecation; one warning per final run."
+  },
+  "training_authorization": {
+    "authorized_target": "reported-gross-transfer-ntd-per-registered-ping-v1",
+    "evaluation": "Retrospective archive-snapshot temporal generalization with source-quarter membership restrictions; not an as-of-publication historical backtest.",
+    "feature_contract": "plvr-gross-transfer-features-v1",
+    "gates": {
+      "admitted_dataset": "Independent complete verification required before fitting.",
+      "historical_availability": "Required for PIT backtesting; unsatisfied. New snapshot contract does not reconstruct past public information and cannot support PIT claims.",
+      "identity_revision_notes": "Required. All conflicting/revised identities, note-tainted families and ambiguous strong-fact groups excluded by immutable verified ledger.",
+      "parking": "Unverified. Omitted from features; target is unadjusted gross consideration per reported area. No absence or exclusive value inferred.",
+      "rights": "Unverified. Omitted from features; observed reported transfers only, not complete dwelling interests."
+    },
+    "historical_point_in_time_authorized": false,
+    "parking_exclusive_authorized": false,
+    "strict_ml_a_b_contracts_changed": false,
+    "training_authorized": true,
+    "version": "plvr-archive-snapshot-admission-v1",
+    "whole_dwelling_authorized": false
+  },
+  "winning_model": {
+    "iterations": 500,
+    "name": "lightgbm_log_l1_leaves63",
+    "selection": "Validation MAE; two predefined capacities only; no holdout tuning."
+  }
+}

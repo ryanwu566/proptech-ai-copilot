@@ -1,0 +1,126 @@
+{
+  "schema": "professor-stage2-oci-attestation-verifier-repair-v1",
+  "recorded_at": "2026-10-29T11:39:01.193641+00:00",
+  "status": "SOURCE_REPAIRED_INDEPENDENT_REVIEW_PASS",
+  "stage2_status": "PARTIAL",
+  "failed_run": "20261029T104746Z-2993da4548b9",
+  "diagnostic_evidence": "/tmp/professor-stage2-image-readonly-f0u3n1uf/diagnosis.json",
+  "diagnostic_sha256": "6e902818d2c6bfd66189c6659a7653212af3b279eed65bbb9abc902d78a6e847",
+  "exact_refusal": {
+    "source_file": "services/professor_activation_scan.py",
+    "function": "descriptor",
+    "line": 474,
+    "media_type": "application/vnd.oci.empty.v1+json",
+    "descriptor_role": "config",
+    "sha256_descriptor": true
+  },
+  "reason_code": "archive_unsupported",
+  "root_cause": "OCI 1.1 BuildKit attestation empty-JSON config and in-toto JSON payload were treated as a runnable rootfs image; the config descriptor allowlist refused the empty media type.",
+  "feature_class": "OCI_DOCKER_ATTESTATION_STRUCTURE",
+  "sparse_compression_pax_tar_or_whiteout_refusal": false,
+  "credential_finding_reported": false,
+  "candidate_image": {
+    "id": "sha256:c06a1e4123743041cb31c4c12bdd87e1e0165c6303baefd3d3c6103a62445615",
+    "layer_count": 22,
+    "architecture": "amd64",
+    "os": "linux"
+  },
+  "candidate_image_tag": "proptech-professor-api:stage2-20261029t104746z-2993da4548b9",
+  "structure": {
+    "archive_records": 27,
+    "layer_records": 18,
+    "json_records": 9,
+    "media_types": {
+      "application/vnd.oci.image.manifest.v1+json": 4,
+      "application/vnd.oci.image.config.v1+json": 1,
+      "application/vnd.oci.image.layer.v1.tar+gzip": 22,
+      "application/vnd.oci.empty.v1+json": 1,
+      "application/vnd.in-toto+json": 1,
+      "application/vnd.oci.image.index.v1+json": 3
+    },
+    "attestation_markers": 1,
+    "docker_manifest_present": true,
+    "oci_index_present": true,
+    "oci_layout_present": true
+  },
+  "primary_references": [
+    "https://docs.docker.com/build/metadata/attestations/attestation-storage/",
+    "https://github.com/opencontainers/image-spec/blob/main/manifest.md"
+  ],
+  "repair": [
+    "Recognize only the documented OCI 1.1 BuildKit attestation artifact, index annotation and unknown/unknown platform contract.",
+    "Require canonical empty config bytes/digest/size and verify optional embedded descriptor data.",
+    "Verify all attestation and target descriptor digests/sizes, in-toto statement versions and predicate annotations.",
+    "Bind attestation subjects to a reachable runnable image or its hash-bound config/layer objects after complete graph traversal.",
+    "Compare Docker/OCI runnable contracts without misclassifying attestation JSON as filesystem layers.",
+    "Retain complete historical-layer and metadata credential scans, known-value precedence, strict digests/diff_ids, bounds and unknown-format refusal."
+  ],
+  "verification": {
+    "focused_passed": 80,
+    "subtests_passed": 28,
+    "failed": 0,
+    "test_files": [
+      "tests/test_professor_activation_scan.py",
+      "tests/test_professor_stage2_image_diagnose.py",
+      "tests/test_professor_stage2_activation.py"
+    ],
+    "original_refusal_reproduced_before_fix": true,
+    "negative_attestation_cases": 24,
+    "python_ast": "PASS",
+    "git_diff_check": "PASS",
+    "real_compose_synthetic_merge": "PASS",
+    "independent_review": "PASS; no remaining important findings; independent 39 tests and 28 subtests passed",
+    "full_suite_rerun": false,
+    "independent_tests_passed": 39
+  },
+  "current_live_state": {
+    "api_contracts_passed": 12,
+    "api_status": "PASS",
+    "port8080": "127.0.0.1 only",
+    "postgres_host_listener": false,
+    "container_identity_and_volume_basis": "/tmp/professor-stage2-image-readonly-f0u3n1uf/diagnosis.json",
+    "all_four_containers_running_healthy_unchanged": true,
+    "stage2_override_exists": false
+  },
+  "existing_candidate_rescan": {
+    "status": "NOT_EXECUTED_DOCKER_SOCKET_ACCESS_UNAVAILABLE",
+    "actual_image_cleared": false,
+    "no_rebuild_attempted": true,
+    "read_only_operator_tool": "scripts/ops/professor_stage2_image_diagnose.py",
+    "tool_pinned_to_existing_candidate_id": true,
+    "tool_pinned_to_repaired_scanner": true,
+    "activation_rechecks_image_before_runtime_mutation": true
+  },
+  "ready_for_operator_activation_retry": true,
+  "rollback_required": false,
+  "safety": {
+    "sudo_executed": false,
+    "images_rebuilt": false,
+    "activation_executed": false,
+    "runtime_config_or_containers_changed": false,
+    "secrets_opened_or_modified_by_agent": false,
+    "providers_enabled": false,
+    "database_mutations": false,
+    "dev_sda_operations": 0,
+    "frontend_next_env_sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
+    "frontend_preserved": true,
+    "commit_created": false,
+    "pushed": false
+  },
+  "files_changed_this_repair": [
+    "services/professor_activation_scan.py",
+    "scripts/ops/professor_stage2_image_diagnose.py",
+    "tests/test_professor_activation_scan.py",
+    "tests/test_professor_stage2_image_diagnose.py",
+    "docs/operations/professor-server-secrets-runbook.md",
+    "reports/professor-stage2-secrets/acceptance.json",
+    "reports/professor-stage2-secrets/image-scanner-repair.json"
+  ],
+  "source_sha256": {
+    "services/professor_activation_scan.py": "4c1156387bde3cc7c20d8b5629019e69bd445f46b002057ec5dddda24ae7ce95",
+    "scripts/ops/professor_stage2_image_diagnose.py": "f14e135cab0b250daff3cec9d8ff86a3ac5b6fee991d15f046174e2c6caaf468",
+    "tests/test_professor_activation_scan.py": "6ccb8ccc9a441f606f58163968b0de3843f3c0ec1efab086eb6133e9e6fc57ca",
+    "tests/test_professor_stage2_image_diagnose.py": "6c7a410537770d703a21f9c0083aa86a878f5fa2e722f0d1bf285ba2644c5c20"
+  },
+  "activation_operator_command": "sudo python3 -B /home/andy/proptech-ai-copilot/scripts/ops/professor_stage2_activation.py --apply"
+}

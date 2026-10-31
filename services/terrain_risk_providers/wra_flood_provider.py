@@ -197,7 +197,8 @@ class WraFloodProvider:
 
     @staticmethod
     def _provenance(result: dict[str, Any]) -> dict[str, Any]:
-        return {"data_vintage": result.get("source_vintage") or "unknown",
+        return {"storage_backend": result.get("storage_backend", "r2"),
+                "data_vintage": result.get("source_vintage") or "unknown",
                 "dataset_version": result.get("dataset_version") or "v1",
                 "artifact_sha256": result.get("artifact_sha256")}
 

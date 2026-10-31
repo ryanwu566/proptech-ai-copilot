@@ -67,7 +67,7 @@ const labels = {
   location: ["目前物件位置", "Current property location", "現在の物件位置", "현재 매물 위치"],
   methods: ["來源與方法詳情", "Source and method details", "出典と方法の詳細", "출처 및 방법 상세"],
   sourceOriginal: ["來源與查詢資訊原文（僅保留實際提供內容）", "Original source and query records (only supplied content)", "元の出典・照会情報（実際に提供された内容のみ）", "출처 및 조회 정보 원문 (제공된 내용만)"],
-  satellite: ["衛星影像參考（輔助證據）", "Satellite reference (supporting evidence)", "衛星画像の参考（補助証拠）", "위성 영상 참고 (보조 근거)"],
+  satellite: ["地表影像參考（輔助證據）", "Imagery reference (supporting evidence)", "地表画像の参考（補助証拠）", "지표 영상 참고 (보조 근거)"],
   buildingTitle: ["建物狀況：獨立查證提醒", "Building condition: separate advisory", "建物の状態：別途確認の助言", "건물 상태: 별도 확인 안내"],
   buildingNote: ["請取得賣方書面揭露、確認漏水歷史，並視需要安排適當的建物檢查。這不是本頁災害證據結果，不計入查證項目數。", "Request written seller disclosure, check leakage history and arrange an appropriate building inspection when needed. This is advice, not a hazard evidence result, and is excluded from the count.", "売主の書面告知、漏水履歴を確認し、必要に応じて適切な建物検査を依頼してください。これは災害の証拠結果ではなく、項目数には含めません。", "매도인의 서면 고지와 누수 이력을 확인하고 필요시 적절한 건물 점검을 의뢰하세요. 이는 재해 근거 결과가 아닌 조언이며 항목 수에 포함되지 않습니다."],
 } as const satisfies Record<string, Four>;

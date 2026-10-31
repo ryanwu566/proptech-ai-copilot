@@ -1,0 +1,107 @@
+{
+  "schema": "professor-stage2-coverage-probe-repair-v1",
+  "recorded_at": "2026-10-29T10:39:48.833920+00:00",
+  "diagnostic_receipt": "/tmp/professor-stage2-readonly-2usuf1kk/diagnosis.json",
+  "failed_gate": "valuation.coverage",
+  "sanitized_category": "contract_mismatch",
+  "sqlstate": null,
+  "error_origin": "Python ContractFailed acceptance assertion; PostgreSQL query completed without SQL error",
+  "diagnostic_mismatched_fields": [
+    "eligible_regions",
+    "coverage_mismatches",
+    "metadata_consistency"
+  ],
+  "root_cause": "Verifier conflated368canonical inventory regions with regions having eligible serving aggregates; it also demanded covered status for zero-candidate regions and368available districts in metadata.",
+  "classification": "Acceptance verifier defect against expected partial coverage; not a privilege/security mismatch or evidence of serving-data drift",
+  "live_readonly_market_status": {
+    "read_model_status": "ready",
+    "data_status": "available",
+    "coverage_status": "partial",
+    "available_county_count": 19,
+    "available_district_count": 322,
+    "source_updated_at": "2026-06-08",
+    "earliest_period": "2023-07",
+    "latest_period": "2026-10"
+  },
+  "canonical_inventory_regions": 368,
+  "eligible_regions": 322,
+  "zero_candidate_regions": 46,
+  "active_aggregate_groups": 7500,
+  "repair": {
+    "serving_database_modified": false,
+    "privileges_modified": false,
+    "secrets_modified": false,
+    "scope": "Read-only probe SQL and result validation; read-only diagnostic pin/reporting aligned",
+    "canonical_inventory": "Exactly368distinct normalized canonical keys; missing,extra,duplicate entries fail",
+    "positive_candidate_regions": "Persisted count/date must equal serving totals and status must be covered",
+    "zero_candidate_regions": "Must have count0,dateNULL,statuscoverage_unknown; never fabricated covered/fresh",
+    "metadata": "Available district/county counts and periods derived from eligible aggregates, globalpartial preserved",
+    "other_gates": "7500groups,exactaggregateequality,inactivezerorows,PLVRpopulation/exclusions/knownrow/TLS/privilegesremain required",
+    "pre_post_counts": "Actual eligible and zero-candidate region counts included in database snapshot comparison"
+  },
+  "tests": {
+    "focused_passed": 142,
+    "failed": 0,
+    "actual_postgresql_select_only_synthetic_cases": 14,
+    "sql_engine": "Existing local disposable PostgreSQL18 cluster; no DDL/DML/database creation; all fixtures are CTEs",
+    "old_query_reproduction": [
+      322,
+      7500,
+      0,
+      0,
+      368,
+      46,
+      false
+    ],
+    "fixed_query_reproduction": [
+      322,
+      7500,
+      0,
+      0,
+      368,
+      0,
+      true
+    ],
+    "negative_cases": [
+      "falsezero-regioncoverage",
+      "stalecoveragedate",
+      "wrongcandidatecount",
+      "missingextraorduplicateinventory",
+      "wrongaggregates",
+      "wrongmetadataavailability",
+      "falsefullcoverage",
+      "missingmetadata"
+    ],
+    "full_suite_rerun": false,
+    "independent_review": "PASS"
+  },
+  "static": {
+    "python_ast": "PASS",
+    "git_diff_check": "PASS",
+    "tracked_runtime_source_pin_clean": true,
+    "frontend_preserved": true
+  },
+  "current_runtime": {
+    "all_four_containers_healthy": true,
+    "containers_and_images_same_as_failed_run_baseline": true,
+    "postgres_volumes_same": true,
+    "new_candidate_image_exists": false,
+    "stage2_runtime_override_exists": false,
+    "five_api_secret_mount_inodes_still_old": true
+  },
+  "ready_for_operator_activation_retry": true,
+  "stage2_complete": false,
+  "activation_executed_by_agent": false,
+  "fixed_probe_executed_on_professor_database_by_agent": false,
+  "rollback_executed": false,
+  "paid_providers_enabled": false,
+  "pushed": false,
+  "operator_command": "sudo python3 -B /home/andy/proptech-ai-copilot/scripts/ops/professor_stage2_activation.py --apply",
+  "source_sha256": {
+    "scripts/ops/professor_stage2_probe.py": "2eba08fa2d2d9478515102969dc6e7f13684be8970395a902d383434cd5d5ab7",
+    "scripts/ops/professor_stage2_readonly_diagnose.py": "d60ffd310485a799cf168bb8fcd384629148299bcb9b3b5421279a0230f3a450",
+    "tests/test_professor_stage2_probe.py": "04470fa11da5079625450e16faf06e3c709c58c5cce96c7a1ad983f65d4d8655",
+    "tests/test_professor_stage2_readonly_diagnose.py": "3eaf8486925155a699c6dbb24eeaea78ba6a8671a039089baca71a17519c579f",
+    "tests/test_professor_stage2_coverage_sql.py": "73e49f1e31cb4208287fe2d843fcb7a93c70068394113e38045f9d0e57a07cc0"
+  }
+}

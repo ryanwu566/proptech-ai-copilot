@@ -1,0 +1,76 @@
+{
+  "status": "PASS",
+  "base_url": "http://127.0.0.1:8081",
+  "endpoint": "/valuation/ml/v1/estimate",
+  "model_version": "plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7",
+  "manifest_sha256": "54eba6a04069b0f8d569c2fe62bbe1ca70771b5594cb220e908e9f7e3524fac4",
+  "deterministic_identical_requests": 25,
+  "latency_seconds": {
+    "p50": 0.0022062630159780383,
+    "p95": 0.003260400961153209,
+    "max": 0.004080423968844116
+  },
+  "example_request": {
+    "transaction_date": "2026-10-29",
+    "city": "新北市",
+    "district": "新莊區",
+    "building_type": "公寓(5樓含以下無電梯)",
+    "main_use": "住家用",
+    "area_ping": 30.0,
+    "floor": 3,
+    "total_floor": 5,
+    "building_age_years": 20.0
+  },
+  "example_response": {
+    "status": "available",
+    "reason_code": "observed_gross_transfer_estimate",
+    "target": "reported-gross-transfer-ntd-per-registered-ping-v1",
+    "estimate_unit_price_ntd_ping": 427265.32,
+    "estimate_total_price_ntd": 12817959.6,
+    "is_actionable": false,
+    "confidence_probability": null,
+    "coverage": {
+      "fit_rows": 2331,
+      "recent_36_month_rows": 603,
+      "flags": [
+        "temporal_extrapolation",
+        "month_index_outside_fit_1_99_percent"
+      ],
+      "confidence_basis": "fitting sample support only; no probability calibration"
+    },
+    "model_version": "plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7",
+    "feature_contract_version": "plvr-gross-transfer-features-v1",
+    "dataset_fingerprint": "bccf2ec1bc19110b9f55e35c3eaec284c2ad57a97318acea7381c5be5002ccee",
+    "model_generated_at": "2026-10-29T14:48:18.717429+00:00",
+    "model_manifest_sha256": "54eba6a04069b0f8d569c2fe62bbe1ca70771b5594cb220e908e9f7e3524fac4",
+    "fitted_through": "2025-06-02",
+    "historical_point_in_time_verified": false,
+    "limitations": [
+      "Gross reported transfer per registered area: parking and dwelling rights unresolved.",
+      "Retrospective archive snapshot, not verified as-of-publication backtest; cancellation completeness unproven.",
+      "Reported residential use and three multifamily types only; area 5–200 ping; no coordinates or road features.",
+      "No calibrated intervals or confidence probability. Support counts describe fitting data, not certainty.",
+      "Tree time response is constant beyond fitting time; market drift and property differences remain.",
+      "No complete building/community identity; address and road disjoint diagnostics are proxies.",
+      "Data reflect only disclosed, blank-note, unambiguous transfers and source price screens. Selection bias remains."
+    ]
+  },
+  "nonfinite_422": true,
+  "past_date_abstained": true,
+  "low_support_abstained": true,
+  "concurrency_burst": {
+    "200": 16,
+    "429": 2,
+    "503": 0
+  },
+  "legacy_8080_health": "ready",
+  "legacy_comparable_endpoint": {
+    "http_status": 200,
+    "valuation_status": "available",
+    "result_origin": "official",
+    "is_actionable": true
+  },
+  "bind_loopback_only": true,
+  "live_api_restarted": false,
+  "network_scope": "loopback only; no external provider calls"
+}

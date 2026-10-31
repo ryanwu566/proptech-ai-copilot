@@ -1,0 +1,110 @@
+{
+  "status": "PASS",
+  "samples": [
+    {
+      "status": "PASS",
+      "seconds": 0.0406588640762493,
+      "available_ram_bytes": 8767029248
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.03814631304703653,
+      "available_ram_bytes": 8762900480
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.03992344799917191,
+      "available_ram_bytes": 8773939200
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.04053712007589638,
+      "available_ram_bytes": 8774098944
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.028284693020395935,
+      "available_ram_bytes": 8773894144
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.026501956046558917,
+      "available_ram_bytes": 8782643200
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.03391630493570119,
+      "available_ram_bytes": 8775852032
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.10888564703054726,
+      "available_ram_bytes": 8767193088
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.031856123940087855,
+      "available_ram_bytes": 8765972480
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.03244082897435874,
+      "available_ram_bytes": 8769658880
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.03244542295578867,
+      "available_ram_bytes": 8770707456
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.024190096999518573,
+      "available_ram_bytes": 8770723840
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.044490767060779035,
+      "available_ram_bytes": 8772567040
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.02373658900614828,
+      "available_ram_bytes": 8772685824
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.03874148696195334,
+      "available_ram_bytes": 8772685824
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.10154495190363377,
+      "available_ram_bytes": 8770498560
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.026170147000811994,
+      "available_ram_bytes": 8770387968
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.031019747024402022,
+      "available_ram_bytes": 8770469888
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.0349724639672786,
+      "available_ram_bytes": 8770469888
+    },
+    {
+      "status": "PASS",
+      "seconds": 0.031545125995762646,
+      "available_ram_bytes": 8770322432
+    }
+  ],
+  "health_p50_seconds": 0.03391630493570119,
+  "health_p95_seconds": 0.10154495190363377,
+  "health_max_seconds": 0.10888564703054726,
+  "minimum_available_ram_bytes": 8762900480,
+  "phase": "corrected_training_run"
+}

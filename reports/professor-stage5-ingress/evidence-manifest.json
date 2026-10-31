@@ -1,0 +1,647 @@
+{
+  "schema": "professor-stage5-evidence-integrity-v3",
+  "files": [
+    {
+      "path": "config/professor-direct-ingress.plan.example.json",
+      "bytes": 1018,
+      "sha256": "76bcef4149fbcadc444317c820561b2fa6abc87ac1bb1fc5156daf1b2a12b6cc"
+    },
+    {
+      "path": "config/professor-provider-install.plan.json",
+      "bytes": 128,
+      "sha256": "37bc090de7cad08c28aa22029b23bba9fb6776edf4f8b0f107b5887d7f72e23b"
+    },
+    {
+      "path": "config/professor-required-provider-storage.json",
+      "bytes": 3361,
+      "sha256": "7bb55d321d182b242130ce1775838c8c592da8f1018eefad4ebb2b224890511a"
+    },
+    {
+      "path": "config/professor-router-observation.example.json",
+      "bytes": 327,
+      "sha256": "7351be064c8cc2283cf2db8aa8feae3e3d3231c4c708285f9ef9bc8a7fb30665"
+    },
+    {
+      "path": "config/professor-server-credentials.json",
+      "bytes": 136036,
+      "sha256": "691430dc80ba2e52422a39a33ab632d390593a57df0564d23148326341b9c20b"
+    },
+    {
+      "path": "docs/operations/professor-public-ingress.md",
+      "bytes": 12501,
+      "sha256": "b561f8e56ba85d4a0d03c32cecffacce74b1930d9cc221751cba2526986a77a1"
+    },
+    {
+      "path": "docs/operations/professor-stage5/adoption-retirement-matrix.md",
+      "bytes": 11132,
+      "sha256": "6e443cfdfb8764e4c8c95ecbbd455e6059e728b19294e2b7b901896146e00f96"
+    },
+    {
+      "path": "docs/operations/professor-stage5/cloud-retirement.md",
+      "bytes": 2344,
+      "sha256": "77de2441592064f9ca53a8c9910f419e14295cbd0c896af7ddc240b04f86455a"
+    },
+    {
+      "path": "docs/operations/professor-stage5/conditional-https-plan.md",
+      "bytes": 2278,
+      "sha256": "41a44bfa81299dbb31b8d0700f1cdfce8d5535920dfaeac36e70b626b417e6c3"
+    },
+    {
+      "path": "docs/operations/professor-stage5/credential-evidence-collection.md",
+      "bytes": 8573,
+      "sha256": "be1e4c53dab91da199b4546bb25d5c7be5538d0328971147eb373704d366c861"
+    },
+    {
+      "path": "docs/operations/professor-stage5/deployed-cloud-evidence.md",
+      "bytes": 9331,
+      "sha256": "b6a0ef68cfe966c4cfe8dac7cb9d8648e58ee533bcef2f0f862317769dc3a979"
+    },
+    {
+      "path": "docs/operations/professor-stage5/earth-engine-keyless-adc.md",
+      "bytes": 8133,
+      "sha256": "3f207e4bf418e76c485aa4c1f0cca55f588c2ff69f5d53c3ad1a64e4103b27f6"
+    },
+    {
+      "path": "docs/operations/professor-stage5/external-acceptance.md",
+      "bytes": 3380,
+      "sha256": "b35debad4e4f106c69f495ca026e1289b14bba58beed860b40097aef849613c2"
+    },
+    {
+      "path": "docs/operations/professor-stage5/firewall-plan.md",
+      "bytes": 2296,
+      "sha256": "b9a6458b3e65436a6664ef6db55b9f12bc60e1007d42b24386bb15be49c83766"
+    },
+    {
+      "path": "docs/operations/professor-stage5/independent-provider-installation.md",
+      "bytes": 7784,
+      "sha256": "0a56207aec07c42bf929e2d85346c72844fc45a92399a0613243622e386a6160"
+    },
+    {
+      "path": "docs/operations/professor-stage5/local-maintenance-adoption.md",
+      "bytes": 5111,
+      "sha256": "f54a447b5fde476c8755032299c2cb8cf855146a080c99fcec6212bad052e388"
+    },
+    {
+      "path": "docs/operations/professor-stage5/no-wan-preparation.md",
+      "bytes": 5889,
+      "sha256": "b3621b563056b06fe4b5c06844868b9a5e3ee74bd1b3ee529ae589ee630bf205"
+    },
+    {
+      "path": "docs/operations/professor-stage5/provider-activation-acceptance.md",
+      "bytes": 4652,
+      "sha256": "21c12e5675016cc70952bb687eb84055e9258a2905d36f61192d168233123f3a"
+    },
+    {
+      "path": "docs/operations/professor-stage5/provider-credential-installation.md",
+      "bytes": 8439,
+      "sha256": "ed84d20214048605aae450128e460c670d19f841582910ab50bcd16340eaa41a"
+    },
+    {
+      "path": "docs/operations/professor-stage5/provider-cutover-dependencies.md",
+      "bytes": 13757,
+      "sha256": "429eaeed0e56121a651137be58d928efe117f8c4502053a13c35e286774f3cec"
+    },
+    {
+      "path": "docs/operations/professor-stage5/public-ingress.DRYRUN.md",
+      "bytes": 3599,
+      "sha256": "e87cb151012580778b86b2837774a985dd38830b57ed78dcb0adde542fba3451"
+    },
+    {
+      "path": "docs/operations/professor-stage5/reboot-plan.md",
+      "bytes": 3913,
+      "sha256": "e722893a1507a85a71dddfe2e14f08f9bb21b3a0bc47c123156fbee27e45f86f"
+    },
+    {
+      "path": "docs/operations/professor-stage5/required-provider-migration.md",
+      "bytes": 11086,
+      "sha256": "901e106fdecc8ece3de74183f904ba823253e5f97df232f0fa5b089215be8ee1"
+    },
+    {
+      "path": "docs/operations/professor-stage5/retirement-dependency-inventory.md",
+      "bytes": 8298,
+      "sha256": "1bf2bf92a8a18de4a084c376374b4bdc7e8d300fc17b3c0b2791b3739909af7e"
+    },
+    {
+      "path": "docs/operations/professor-stage5/rollback-plan.md",
+      "bytes": 2913,
+      "sha256": "e3502ec1779dea3bf6e3cba990315ada0eff5d78758ca7659ff9d5d60a23928e"
+    },
+    {
+      "path": "docs/operations/professor-stage5/router-cgnat-checklist.md",
+      "bytes": 3121,
+      "sha256": "4aada507fb18222153730b1a870c022d25a50ac49ee2d2f65f6a598541321317"
+    },
+    {
+      "path": "docs/operations/professor-stage5/vercel-cutover.md",
+      "bytes": 2387,
+      "sha256": "a0993d85a719f235d59e1e58af72f49e83f274cc532a1bb78996fdac8b6cec91"
+    },
+    {
+      "path": "docs/operations/provider-credential-matrix.md",
+      "bytes": 16906,
+      "sha256": "459d023de7313af21d8cd6e5fd54e5024b6d089ea056d1878a0b167f28f1d7b2"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-30-earth-engine-keyless-adc.md",
+      "bytes": 3488,
+      "sha256": "4fc58f4c0c1c72d12e043836a974534bae274a90e5a918fbbf679076eccfb645"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-30-independent-provider-migration.md",
+      "bytes": 2932,
+      "sha256": "c95570ae76afb0f76a47265cd70c87f40d7983b41768b94a6b53733eb2fb73a9"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-30-professor-direct-ingress.md",
+      "bytes": 5008,
+      "sha256": "d01c1841b1c5c640bfd429d89b9b7cd0366d15ea2aae8a6e103c2adbe71b81fd"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-30-provider-credential-workflow.md",
+      "bytes": 2391,
+      "sha256": "8448c630b00b2844c10ddaad5b7280da2d188820d0a5ac508259e712e0630af0"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-30-required-provider-migration.md",
+      "bytes": 3033,
+      "sha256": "1470c2902b641d515c14dcca3d15180b5da5cac422338da4f0f9932d99fe96bc"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-30-stage5-credential-closure.md",
+      "bytes": 6574,
+      "sha256": "120e6f525becfc513c414c70e1af223a5b71a5b7b99f6b90c4d4d8fa7ef6a66d"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-30-stage5-provider-only-closeout.md",
+      "bytes": 3080,
+      "sha256": "f64c70d79eb6b525b72298e6b4199dd293e305388274a36565b6b2639a3f29e0"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-10-30-professor-direct-ingress-design.md",
+      "bytes": 4367,
+      "sha256": "43faedfb9b1d956597c5b0bf93ab77593d00630d2a7c7c02ac1787053fb6cf32"
+    },
+    {
+      "path": "infra/selfhost/professor-public-ingress.override.yml",
+      "bytes": 847,
+      "sha256": "ec48c4bbf6c77ecc430d73c489d7f48f081ed0439dd8be3cdf5e4391a44f779d"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/acceptance.json",
+      "bytes": 48361,
+      "sha256": "a84296fd59f41ce130d9c76fa5815ed3e19feb94a3f2a06b368764728eb9dce9"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/adoption-acceptance.json",
+      "bytes": 5133,
+      "sha256": "86a0e8749932cd0e4aa0334090733b12544062b8b0d323191b0d2482ba3303d5"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/adoption-evidence-guard-tests.xml",
+      "bytes": 1913,
+      "sha256": "f009556ff4f6670a9e5e7fc31f7277ea394fa39fae7cef4061cf018b9b397f21"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/adoption-final-tests.xml",
+      "bytes": 5218,
+      "sha256": "c02426d6f13ef7ebaa8ce96ef958580a5b3b9dec39ebcc7b64d938d35d62552f"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/adoption-retirement-plan.json",
+      "bytes": 29012,
+      "sha256": "cf9535e6d5d5fff432a7294385f0224525cf10af5409f6b85b88d8946b9b3d1a"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/adoption-static-validation.json",
+      "bytes": 376,
+      "sha256": "072d6e34879aa5ee19bfe338e5c4e37aa42e4b2f02448b508771cfcf6aae0775"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/cloud-component-replacement-matrix.csv",
+      "bytes": 10571,
+      "sha256": "9b27ab4d8d40125de33be3c13f7ca6f983940d0fab63b0e25a68b11789541c5a"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/cloud-deployed-dependency-inventory.json",
+      "bytes": 36051,
+      "sha256": "5abb1fc8221901c6c17bcc89c4310b559ff74ecaea8187329e2aa7029d91b601"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/cloud-retirement-dependencies.json",
+      "bytes": 9788,
+      "sha256": "38d50195ad5d6615dcd2588b927cfdd72b8f0c35c56a6474b8703586cfe47116"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/cloud-run-retirement-matrix.csv",
+      "bytes": 2346,
+      "sha256": "4bd851a4ff3daf5d9d44934eb4238fc646a86b6341b42dc8cfd3655d0ea7739f"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/conditional-https-plan.json",
+      "bytes": 1577,
+      "sha256": "0537cefa4e0f548916ecf8503ba02fa4cdd54b950beec7ddd992e5a231bec475"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/credential-audit-closure.json",
+      "bytes": 5909,
+      "sha256": "885d28c7cd9cd7d30310ba288a5eb25b362fe68fd34d96db723b09746267f301"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/credential-closure-final-tests.xml",
+      "bytes": 7949,
+      "sha256": "eec46a129c375ef1374046f083844c9e6513034236f15b2a391a1628ae9b7fd8"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/credential-closure-live-health.json",
+      "bytes": 226,
+      "sha256": "5264486da6207faddb8b54f18d5622887fc3411c5f2aad160bdee1394f79aea5"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/credential-closure-static.json",
+      "bytes": 293,
+      "sha256": "77ea3812ed0a9b861d061dac5e0b6a99d3822a927ed5a27a02ba6b21a06e44f8"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/credential-closure-tests.xml",
+      "bytes": 13336,
+      "sha256": "510992da97dda14c5aec38b8c3767084e6f98c67dd904e2d2e9b3be2ffce10f1"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/credential-migration-matrix.csv",
+      "bytes": 83848,
+      "sha256": "44a8237a451112e86ec87c0982e57b53b1c049e877df25002e6ef5cb22b7dd18"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/credential-migration-plan.json",
+      "bytes": 204517,
+      "sha256": "07829e2b55a5bee022aeac4e9deac3ab778edf7bea46c248a9452a655b7b66ac"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/credential-workflow-focused-tests.xml",
+      "bytes": 7171,
+      "sha256": "a403436cfbbf631ffa84f669140b380d4134998dd9c9e7e23c97565aed70a7b2"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/credential-workflow-validation.json",
+      "bytes": 1501,
+      "sha256": "d1cc5da4d329773708ee43544e61e2d9b6e28e0863235aad28c250b1f4811d7e"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/deployed-inventory-focused-tests.xml",
+      "bytes": 3068,
+      "sha256": "3ff2e5a4a1a147a198ecd32aa5766dab888fa3f83ffaad16287ce2272bcec167"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/deployed-inventory-validation.json",
+      "bytes": 653,
+      "sha256": "0d21ffed9bfb06999e7846e21ecc25c5772cd597f74034955cea3f5472203aa8"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/earth-engine-keyless-auth.json",
+      "bytes": 5423,
+      "sha256": "3a1efe5e30a9df968dea212b142c542f5842af68daad57e488d183fa79399ba0"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/earth-engine-keyless-tests.xml",
+      "bytes": 38371,
+      "sha256": "56f16cbbec6d83740a51ac538416f1a7054f4341758cffbebd9ef7b4c30344d9"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/env-example-identifiers.json",
+      "bytes": 4455,
+      "sha256": "d08f04626b09d077fd4c74d0ceb854b8f9c32670c76c61a484f3a55dbb759d1e"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/final-guardrail-regression.xml",
+      "bytes": 9041,
+      "sha256": "47160c072e13fd4da31f6a770adb55206dc88590cb546cd8b89d81c9a73ea323"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/focused-tests.xml",
+      "bytes": 23046,
+      "sha256": "d4f705d5502f5e02f02345903450c4acf59ad20d6e18fbdc03d3b762583008a6"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/github-read-metadata.json",
+      "bytes": 859,
+      "sha256": "ada5ce64e0dfc0f736c9c981bd3e6c86dc36944dbe6575da3db1724400dd7159"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/independent-provider-migration.json",
+      "bytes": 6292,
+      "sha256": "94c45ae7b8b0893886b67993ee45604f6c9d1ddaacd21b10f1921967bb4dd9cd"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/independent-provider-tests.xml",
+      "bytes": 44366,
+      "sha256": "c1e264f24fda3120e50ca74df08ac14d48028b39a479e964a7a7ef029a155ac7"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/live-release-metadata.json",
+      "bytes": 903,
+      "sha256": "2db28a6dd6a4ef1ae11badb5080d87d005272a7501ba5b08c7d952a997c9aa1d"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/local-runtime-checks.json",
+      "bytes": 2074,
+      "sha256": "551ce5d514c7c5c2149f917bba0b23763099f03c3918f0d27eff605b05b384e9"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/maintenance-activity-observation.json",
+      "bytes": 1363,
+      "sha256": "da6d7c44dbfaf2c4a9ccf3ec14d9fd69c0219576e348f40747ddce0a23204380"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/maintenance-dispatch-history.json",
+      "bytes": 11129,
+      "sha256": "4b8e11575a6f97fb4b65fde490d7cd0f1d75a265410f55adb896322346db6b84"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/network-audit-credential-closure.json",
+      "bytes": 2435,
+      "sha256": "a77a5fb591d1da08a51f23fe0debb29832eb380daf28883457c6a660fc9b5e16"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/network-audit.json",
+      "bytes": 2512,
+      "sha256": "db734ab285218a8be66bfc5ff25aeda52c4f18aa20ff150c38efdb5ac4bd2368"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/nginx-final-regression.xml",
+      "bytes": 506,
+      "sha256": "fc072846e752668325b4e31466b605fc6ebeb7778cd6ef7659fe3b4e2a6b83bc"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/no-wan-final-tests.xml",
+      "bytes": 8681,
+      "sha256": "bd9f059ee43e3b43ebd714df40997620da3848bfdb81bf9991540557b6e5fc2b"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/no-wan-live-checks.json",
+      "bytes": 281,
+      "sha256": "6bd05c8bd156d67d9eeb9fb9cea118cde37257c454b03a9d22379dd0dffdc2e0"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/no-wan-preparation-tests.xml",
+      "bytes": 7141,
+      "sha256": "2423653407817c151719bfc71f6740214f430a9809185b7d084ffec5994756c4"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/no-wan-preparation.json",
+      "bytes": 4457,
+      "sha256": "aaba6af89ac02ac260b8050a215bed45e41dc06234ce6a3635c5242c5667a1e4"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/no-wan-static-validation.json",
+      "bytes": 596,
+      "sha256": "9b4d0c7a9511144c90915ff040390f32b82ef8372195644c8038d2eb5e449a54"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/professor-adoption-matrix.csv",
+      "bytes": 5301,
+      "sha256": "c235bf2fef85828f281790a785510b6544d952fec79fc4140388fb8a50a32df6"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/provider-cutover-acceptance.json",
+      "bytes": 7305,
+      "sha256": "06fc83ce6cbee5ff1a8590efcd2237ace1a51deafa58edfc417a2691c20dcbe7"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/provider-dependency-matrix.csv",
+      "bytes": 133340,
+      "sha256": "d26e447c81bd3142cf258a68833ff27160417293d5c51e473757da8bed49cf9c"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/provider-dependency-matrix.json",
+      "bytes": 551845,
+      "sha256": "b5f8a7332b87c70163dd62c2bd65fc7677418c6aace1513a8c0ee3d7120f3438"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/provider-guard-refusal-diagnosis.json",
+      "bytes": 7288,
+      "sha256": "0d2280c4e2d6c2b422882a16bb0201528674e8c9bd06a5ea10382419dc250dd6"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/provider-guard-repair-tests.xml",
+      "bytes": 10196,
+      "sha256": "d6eaa9957f26fa651b19c0b7c69c0ffb80d099b59f2f55783b8b9f82d6aa1ef4"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/provider-guard-repair-validation.json",
+      "bytes": 1184,
+      "sha256": "4b897a3123728bff2049cab4ac2cbe89fd1630680cd19871ee616cee6bbc9585"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/provider-matrix.json",
+      "bytes": 95559,
+      "sha256": "e89da5834f67729b10da6a652f80b20333814684e476ef2e6fa31b93fdf2fc12"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/provider-migration-failure-receipt.json",
+      "bytes": 1447,
+      "sha256": "acd619123785ec697da8b016e2348f4680bfaa572a74553e95aa408cb9253e68"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/provider-only-focused-tests.xml",
+      "bytes": 8046,
+      "sha256": "1d0740dd554389b64938c2c9ee6577bd12f76992884a2c0c83b4686e0249d167"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/provider-only-static-validation.json",
+      "bytes": 621,
+      "sha256": "23f5e9f4ba73605ad60a5c80bb690e80bd48505d8f7375f24f7558af4c0dc786"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/public-caller-references.json",
+      "bytes": 5712,
+      "sha256": "5cdf5f1624a5d257e468f92b4bfd7e3a795a411eebcddf1569aa73bb69bfb541"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/public-ingress-dry-run.json",
+      "bytes": 3224,
+      "sha256": "4570e0c99439ace55c154251cb4c020ae38e57c18066aaedf1665516e6fc703e"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/public-route-observation.json",
+      "bytes": 18187,
+      "sha256": "f7604da1c2f11cb27f08514c8fd6d9d67b99f4ad95080193ea04200115a5920f"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/render-retirement-matrix.csv",
+      "bytes": 2923,
+      "sha256": "90e256a27519c8cdf340c3936abded8f4eee7208b7c7bf34082155fb81ea4ade"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/repository-history-cloud-metadata.json",
+      "bytes": 10798,
+      "sha256": "fc5a54942c2a47c9153f5b11a476b825a4f572fa98943cb1360b1b44ded7fd6e"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/required-provider-migration-preparation.json",
+      "bytes": 20413,
+      "sha256": "86630a62767954c201e8f313765a02f67833a86509370c6206feeb90ac6b8144"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/required-provider-migration-validation.json",
+      "bytes": 3219,
+      "sha256": "3b08f9a2865b557d8254d089668c89ada616a128a03f0c298f6e3ef32d5bf692"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/required-provider-policy-tests.xml",
+      "bytes": 26108,
+      "sha256": "eb1f39849cb63d8fdab639a5dc43fe5f25042270ac08140b7fc436088d16ba81"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/retirement-readiness-matrix.csv",
+      "bytes": 5375,
+      "sha256": "352e546c32e45a761bf167e9c037648a7cba8f7b42c7efa42de131105a01abd1"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/review.json",
+      "bytes": 7956,
+      "sha256": "504f6e5d9fecb17f5ab1cfbc271485e66401f1c38af3508560823f2c5431fdc3"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/scheduled-workflow-metadata.json",
+      "bytes": 3139,
+      "sha256": "4177ee20d2af84673c58237368ada38d21a002000fd86a60697015701e368cb3"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/static-validation.json",
+      "bytes": 377,
+      "sha256": "35fafcdefde1faffff7a99a5a30b25b009fb164a95aea0248ddcd5b41e1de987"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/supabase-public-metadata.json",
+      "bytes": 692,
+      "sha256": "079307fd16dd0ef5110c5fd0b43d4e6fba7180bce5a77d921e8ea95dc20e57c7"
+    },
+    {
+      "path": "reports/professor-stage5-ingress/supplemental-host-observations.json",
+      "bytes": 1682,
+      "sha256": "1aee04b59445093ca18d383fe662bf3df913e46dc734de37a621ff4043e31e35"
+    },
+    {
+      "path": "scripts/ops/professor_provider_credentials.py",
+      "bytes": 11576,
+      "sha256": "ed57f1ea1d279c872eb322a2aa365de5b3a5bc33c3b3e9010ae882e648691d46"
+    },
+    {
+      "path": "scripts/ops/professor_provider_storage.py",
+      "bytes": 31050,
+      "sha256": "e3525ad834bd37603936e4aa7f387d0636a1dfd30562b07019e7376254f5be5a"
+    },
+    {
+      "path": "scripts/ops/professor_stage5.py",
+      "bytes": 15246,
+      "sha256": "d97b57860711661c777fa4132c7848141a5d0c90d9bea96805ad24d31a43dac2"
+    },
+    {
+      "path": "scripts/ops/serve_valuation_ml.py",
+      "bytes": 3841,
+      "sha256": "b63ccf115b5469bd2c08276cd53fafe3d2d75d79bef407e5c19edc0287b7f9d0"
+    },
+    {
+      "path": "services/earth_engine_adc.py",
+      "bytes": 3416,
+      "sha256": "5847d05a959614e99128f30f9910318298a47acecc18ea7b7163f20e0cafbe50"
+    },
+    {
+      "path": "services/professor_adoption_plan.py",
+      "bytes": 15275,
+      "sha256": "5e7054f66e502bc40d1a65b2c8bfd29131e4e7374f20fc37e1c78dddb8b25574"
+    },
+    {
+      "path": "services/professor_credential_audit.py",
+      "bytes": 24509,
+      "sha256": "02faf52dbec20d6645b81471588bc35bc0cc5d0b1bfd3766e5a82b17f285425f"
+    },
+    {
+      "path": "services/professor_credentials.py",
+      "bytes": 12174,
+      "sha256": "d9a70e5cfe845003423364d521cca02c2ff791733d05382c9c872878e20a3ec2"
+    },
+    {
+      "path": "services/professor_ingress.py",
+      "bytes": 26479,
+      "sha256": "8a3d670593f19d2d5dcb8567eab5eeddf617c04ca66a9afed01d61ac4510aed0"
+    },
+    {
+      "path": "services/professor_retirement_inventory.py",
+      "bytes": 6390,
+      "sha256": "7b37b72f9311f51ab0d604ad8ea2cc9f6ac26ba7818e7adffcd8103450d585cf"
+    },
+    {
+      "path": "services/professor_router_plan.py",
+      "bytes": 3100,
+      "sha256": "4987c28b5bcdce2bdd8496b34edf987b73af64e37a531f62f69bcc5f9d4897e8"
+    },
+    {
+      "path": "services/selfhost_secret_files.py",
+      "bytes": 16660,
+      "sha256": "ec297f783a509f578429a7e4dc39c33f34592922c3c58fb5157fe999aa8a10a2"
+    },
+    {
+      "path": "tests/test_earth_engine_keyless_adc.py",
+      "bytes": 11272,
+      "sha256": "9c5605d642c91310aeea7bafa1af8a0ef9a0321574d837e80f77cf8746601577"
+    },
+    {
+      "path": "tests/test_professor_adoption_plan.py",
+      "bytes": 6927,
+      "sha256": "40f29e208711ff2ef55995f95ed6e5b965bf943352db59e29ebcda3a3e490010"
+    },
+    {
+      "path": "tests/test_professor_credential_audit.py",
+      "bytes": 11324,
+      "sha256": "fa225336ecbe24b1cff368cf295c58873a9f911af6048da4f10293249af7f30c"
+    },
+    {
+      "path": "tests/test_professor_independent_providers.py",
+      "bytes": 8930,
+      "sha256": "e12069c68d8bb062ca268e815ff2e44fecd00996da838177a0c0a7aa03cffcb3"
+    },
+    {
+      "path": "tests/test_professor_ingress.py",
+      "bytes": 16902,
+      "sha256": "79932374202d7b8a7b3d36210b18572eb5b7f098f41d545e74533f954d3b89b6"
+    },
+    {
+      "path": "tests/test_professor_ml_socket.py",
+      "bytes": 4314,
+      "sha256": "18232d86cf21f3ddf6956624fb16b709c9230b1cf6612fbabca579ef533cb2b7"
+    },
+    {
+      "path": "tests/test_professor_provider_credentials.py",
+      "bytes": 11123,
+      "sha256": "2598ae9615932b59a66b2c4f5d549c2703e3d4cc48f0ed02f0e54585e55b0dfc"
+    },
+    {
+      "path": "tests/test_professor_required_providers.py",
+      "bytes": 15967,
+      "sha256": "414444c3bd999302708270439e66310ce127d1f7e5a98ca91889756ed9ebc915"
+    },
+    {
+      "path": "tests/test_professor_retirement_inventory.py",
+      "bytes": 3628,
+      "sha256": "dd43ca2c45e7f90eea83330a3b88f76c12ddbe77f992d70b94be85c938a3ac16"
+    },
+    {
+      "path": "tests/test_professor_router_plan.py",
+      "bytes": 2928,
+      "sha256": "477807e99db5e78854d3a93dd604d3fee8ab6a164379398a1a2f4b6b91aa430c"
+    },
+    {
+      "path": "tests/test_professor_stage5_audit.py",
+      "bytes": 7390,
+      "sha256": "08ddb088dd97f069bbe538598ddf92da37fb18024736ba27091aad28cc41b9ac"
+    }
+  ],
+  "self_manifest_excluded": true,
+  "previous_snapshot_commit": "aeaa87b2c51b2ca8eef8f9060e51b874e557749f",
+  "literal_credential_scan": "PASS",
+  "installed_secret_values_read": false,
+  "scope": "intentional Stage5 source/docs/evidence; known-format scanner only, never compare installed credential values",
+  "frontend_files_included": false,
+  "public_apply_authorized": false
+}

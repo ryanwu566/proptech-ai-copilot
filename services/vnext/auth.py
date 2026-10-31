@@ -39,6 +39,8 @@ class AuthenticatedPrincipal:
     token_subject: str
     issuer: str
     token_issued_at: datetime | None = None
+    session_id: UUID | None = None
+    token_expires_at: datetime | None = None
 
 
 SigningKeyResolver = Callable[[str], Any]
@@ -136,8 +138,17 @@ class SupabaseJWTVerifier:
             )
             if claims.get("role") == "service_role":
                 raise ValueError("privileged JWT is not a request principal")
+            from services.professor_userdb import enabled
+            stage4a = enabled()
+            if stage4a and (claims.get('role') != 'authenticated'
+                or claims.get('is_anonymous', False) is not False
+                or type(claims.get('iat')) is not int or type(claims.get('exp')) is not int
+                or not isinstance(claims.get('session_id'),str)):
+                raise ValueError('invalid user session')
+            session_id = UUID(claims['session_id']) if stage4a else None
             token_subject = str(claims["sub"])
             user_id = UUID(token_subject)
+            token_expires_at = datetime.fromtimestamp(int(claims["exp"]), tz=timezone.utc)
             issued_at = claims.get("iat")
             token_issued_at = (
                 datetime.fromtimestamp(int(issued_at), tz=timezone.utc)
@@ -155,6 +166,8 @@ class SupabaseJWTVerifier:
             token_subject=token_subject,
             issuer=self.issuer,
             token_issued_at=token_issued_at,
+            session_id=session_id,
+            token_expires_at=token_expires_at,
         )
 
 
@@ -187,6 +200,9 @@ def require_authenticated_principal(
     verifier: SupabaseJWTVerifier = Depends(get_supabase_jwt_verifier),
 ) -> AuthenticatedPrincipal:
     principal = verifier.verify(bearer_token(request))
+    from services.professor_userdb import enabled, get_repository
+    if enabled():
+        get_repository().admit(principal)
     request.state.authenticated_principal = principal
     from services.api_usage import bind_authenticated_usage
     bind_authenticated_usage(principal)

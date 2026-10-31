@@ -1,0 +1,490 @@
+{
+  "schema": "professor-required-provider-migration-preparation-v1",
+  "checked_at": "2026-10-30T09:29:44.209784+00:00",
+  "base_head": "f36e869632d2259e402ee42aef5ebea73e060658",
+  "status": "READY_FOR_OPERATOR_MIGRATION_NOT_INSTALLED",
+  "policy": "ALL_LISTED_BACKEND_PROVIDER_CREDENTIALS_REQUIRED_EVEN_WHILE_DISABLED",
+  "values_included": false,
+  "required_provider_items": [
+    {
+      "name": "GOOGLE_MAPS_API_KEY",
+      "secret": true,
+      "storage_required": true,
+      "group": "google",
+      "persistent_file": "/etc/proptech-selfhost/secrets/google_maps_api_key",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/google/google_maps_api_key",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "UNKNOWN",
+      "filesystem_absence_confirmed": false,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    },
+    {
+      "name": "GOOGLE_APPLICATION_CREDENTIALS",
+      "secret": true,
+      "storage_required": true,
+      "group": "earth_engine",
+      "persistent_file": "/etc/proptech-selfhost/secrets/earth_engine_adc_json",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/earth_engine/earth_engine_adc_json",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "UNKNOWN",
+      "filesystem_absence_confirmed": false,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    },
+    {
+      "name": "TGOS_APP_ID",
+      "secret": true,
+      "storage_required": true,
+      "group": "tgos",
+      "persistent_file": "/etc/proptech-selfhost/secrets/tgos_app_id",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/tgos/tgos_app_id",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "UNKNOWN",
+      "filesystem_absence_confirmed": false,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    },
+    {
+      "name": "TGOS_API_KEY",
+      "secret": true,
+      "storage_required": true,
+      "group": "tgos",
+      "persistent_file": "/etc/proptech-selfhost/secrets/tgos_api_key",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/tgos/tgos_api_key",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "UNKNOWN",
+      "filesystem_absence_confirmed": false,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    },
+    {
+      "name": "TDX_CLIENT_ID",
+      "secret": true,
+      "storage_required": true,
+      "group": "tdx",
+      "persistent_file": "/etc/proptech-selfhost/secrets/tdx_client_id",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/tdx/tdx_client_id",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "UNKNOWN",
+      "filesystem_absence_confirmed": false,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    },
+    {
+      "name": "TDX_CLIENT_SECRET",
+      "secret": true,
+      "storage_required": true,
+      "group": "tdx",
+      "persistent_file": "/etc/proptech-selfhost/secrets/tdx_client_secret",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/tdx/tdx_client_secret",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "UNKNOWN",
+      "filesystem_absence_confirmed": false,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    },
+    {
+      "name": "R2_ACCESS_KEY_ID",
+      "secret": true,
+      "storage_required": true,
+      "group": "r2",
+      "persistent_file": "/etc/proptech-selfhost/secrets/r2_access_key_id",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/r2/r2_access_key_id",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "UNKNOWN",
+      "filesystem_absence_confirmed": false,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    },
+    {
+      "name": "R2_SECRET_ACCESS_KEY",
+      "secret": true,
+      "storage_required": true,
+      "group": "r2",
+      "persistent_file": "/etc/proptech-selfhost/secrets/r2_secret_access_key",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/r2/r2_secret_access_key",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "UNKNOWN",
+      "filesystem_absence_confirmed": false,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    },
+    {
+      "name": "OPENAI_API_KEY",
+      "secret": true,
+      "storage_required": true,
+      "group": "openai",
+      "persistent_file": "/etc/proptech-selfhost/secrets/openai_api_key",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/openai/openai_api_key",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "UNKNOWN",
+      "filesystem_absence_confirmed": false,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    },
+    {
+      "name": "EARTH_ENGINE_PROJECT",
+      "secret": false,
+      "storage_required": true,
+      "group": "earth_engine",
+      "persistent_file": "/etc/proptech-selfhost/provider-config/earth_engine_project",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/earth_engine/earth_engine_project",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "ABSENT",
+      "filesystem_absence_confirmed": true,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    },
+    {
+      "name": "R2_ENDPOINT",
+      "secret": false,
+      "storage_required": true,
+      "group": "r2",
+      "persistent_file": "/etc/proptech-selfhost/provider-config/r2_endpoint",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/r2/r2_endpoint",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "ABSENT",
+      "filesystem_absence_confirmed": true,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    },
+    {
+      "name": "R2_BUCKET",
+      "secret": false,
+      "storage_required": true,
+      "group": "r2",
+      "persistent_file": "/etc/proptech-selfhost/provider-config/r2_bucket",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/r2/r2_bucket",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "ABSENT",
+      "filesystem_absence_confirmed": true,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    },
+    {
+      "name": "R2_REGION",
+      "secret": false,
+      "storage_required": true,
+      "group": "r2",
+      "persistent_file": "/etc/proptech-selfhost/provider-config/r2_region",
+      "staged_file": "/run/proptech-selfhost/secrets/providers/r2/r2_region",
+      "classification": "MISSING",
+      "classification_scope": "required provider storage migration acceptance; filesystem UNKNOWN is not confirmed absence",
+      "filesystem_presence": "ABSENT",
+      "filesystem_absence_confirmed": true,
+      "metadata": null,
+      "provider_enabled": false,
+      "provider_functional_test": "NOT_RUN",
+      "activation_allowed": false
+    }
+  ],
+  "presence_limit": "Provider store metadata is inaccessible to agent. MISSING means no accepted required-migration receipt; actual filesystem UNKNOWN is preserved. Operator discovers existing material before input.",
+  "google_places_routes_share_maps_server_file": true,
+  "core_runtime_secret_names": [
+    "DATABASE_URL",
+    "API_USAGE_DATABASE_URL",
+    "API_USAGE_PEER_HMAC_KEY",
+    "PILOT_SESSION_SIGNING_KEY",
+    "VALUATION_DATABASE_URL",
+    "PROFESSOR_USER_DATABASE_URL"
+  ],
+  "core_and_supabase_verification_classification": "PRESENT_AND_VALIDATED_ACCEPTED_STAGE2_STAGE4_SNAPSHOT_NOT_FRESH_ROOT_INSPECTION",
+  "browser_public_classification": "BROWSER_PUBLIC_ONLY",
+  "legacy_deployment_alias_classification": "LEGACY_CLOUD_ONLY",
+  "legacy_deployment_names": [
+    "GCP_SERVICE_ACCOUNT_KEY",
+    "GCP_SA_KEY",
+    "GCP_WORKLOAD_IDENTITY_PROVIDER",
+    "GCP_SERVICE_ACCOUNT",
+    "GOOGLE_SERVICE_ACCOUNT_JSON",
+    "RENDER_API_KEY",
+    "RENDER_GIT_COMMIT",
+    "RENDER_API_BASE_URL"
+  ],
+  "additional_unproven_server_references": "Existing matrix/retirement inventory retains undeployed or identity-unproven legacy/gateway/alternate-DB references. No credential/account is invented, retired or activated; real additional consumers still require names/authority inventory.",
+  "operator_installer_ready": true,
+  "operator_entrypoint": "scripts/ops/professor_provider_credentials.py --migrate-all",
+  "operator_command": "sudo python3 -B /home/andy/.codex/worktrees/7d59/proptech-ai-copilot/scripts/ops/professor_provider_credentials.py --migrate-all",
+  "operator_installation_executed": false,
+  "ephemeral_visibility_probes_executed_on_host": false,
+  "provider_network_tests_run": false,
+  "acceptance_levels": [
+    "stored_format_and_private_metadata",
+    "staged_identical_read_only_files",
+    "isolated_nonroot_readability",
+    "Git_image_history_environment_project_log_leak_scans",
+    "provider_functional_acceptance_NOT_RUN"
+  ],
+  "report_root": "/var/backups/proptech-selfhost/stage5-provider-credentials",
+  "providers_disabled_until_individual_acceptance": true,
+  "production_activation_prepared": false,
+  "known_external_input_dependency": "Existing approved portable Earth Engine service-account JSON is required if absent; Cloud Run metadata ADC cannot be exported or inferred as a local credential. No new cloud key or IAM change is performed.",
+  "validation": {
+    "schema": "professor-required-provider-preparation-validation-v1",
+    "status": "PASS",
+    "focused_tests": {
+      "tests": 198,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "python_ast": "PASS",
+    "known_format_literal_scan": "PASS_NO_ACTUAL_SECRET_COMPARISON",
+    "required_secret_files": 9,
+    "public_config_files": 4,
+    "isolated_group_profiles": 6,
+    "policy_json_matches_implementation": true,
+    "current_filesystem_unknown_not_claimed_absent": true,
+    "operator_migration_executed": false,
+    "host_ephemeral_probes_executed": false,
+    "provider_functional_tests": "NOT_RUN",
+    "independent_review": {
+      "status": "PASS_PREPARATION_ONLY",
+      "reviewer": "stage5_security_review",
+      "remaining_critical_findings": 0,
+      "remaining_important_findings": 0,
+      "resolved_findings": [
+        "ancestor/descendant and legacy-flat live mounts blocked",
+        "all existing targets compared during write and final original-value verification after probes",
+        "public config kept outside Stage2 secret scan inventory"
+      ],
+      "reviewer_live_or_credential_or_root_access": false,
+      "final_lock_parent_review": "PASS_NO_IMPORTANT_FINDINGS"
+    },
+    "main_next_env_preserved": true,
+    "nginx_firewall_wan_router_dns_vercel_database_changes": false,
+    "source_files": {
+      "scripts/ops/professor_provider_storage.py": "ef4b6541d7f89e7e166b6d307703550310b4bc2739aeca2fbf6028c141b8932d",
+      "scripts/ops/professor_provider_credentials.py": "1ded81c6f0dd856c90ba2a9280cfb841a86686e6d639398a4e49512bf9ff95d7",
+      "config/professor-required-provider-storage.json": "0797021d6c1965577dd0dec7d580a8bd070022b820d08f882cd1ac83a4ae8419",
+      "config/professor-server-credentials.json": "b9cb0ef8cc998e8b13053284a49e2bde72ffc985132d9551fa50e6e74b90480d"
+    },
+    "pytest_summary": {
+      "top_level_passed": 170,
+      "subtests_passed": 28,
+      "junit_cases": 198
+    },
+    "post_lock_parent_pinning_regression": "30 required-provider tests PASS",
+    "provider_guard_repair": {
+      "schema": "professor-provider-guard-repair-validation-v1",
+      "status": "PASS",
+      "focused_tests": {
+        "tests": 64,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "red_green": "accepted issuer-only profile reproduced original provider_guard_unavailable before repair; all six profile cases pass after repair",
+      "python_ast": "PASS",
+      "migration_retried": false,
+      "provider_calls": 0,
+      "real_secret_values_read": false,
+      "independent_review": {
+        "status": "PASS_PREPARATION_ONLY",
+        "reviewer": "stage5_security_review",
+        "remaining_critical_findings": 0,
+        "remaining_important_findings": 0,
+        "scope": "optional legacy alias compatibility only; exact issuer/audience, conflicting alias and mandatory disable guards remain fail-closed",
+        "historical_cause_precision": "generic original receipt does not identify the field; accepted-profile compatibility failure reproduced",
+        "actual_provider_sources_discovered": false,
+        "operator_retry_workflow_appropriate_with_private_inputs": true,
+        "tests_or_privileged_operations_run_by_reviewer": false
+      },
+      "source_sha256": "ef4b6541d7f89e7e166b6d307703550310b4bc2739aeca2fbf6028c141b8932d"
+    }
+  },
+  "safety": {
+    "credential_values_read_by_agent": false,
+    "sudo_executed": false,
+    "runtime_or_database_changes": false,
+    "network_or_cloud_changes": false,
+    "paid_provider_activation": false,
+    "frontend_modified": false,
+    "dev_sda_operations": false,
+    "x9_mutations": false,
+    "push_performed": false
+  },
+  "provider_config_root": "/etc/proptech-selfhost/provider-config",
+  "public_config_separate_from_secret_scanner_inventory": true,
+  "policy_supersedes_optional_storage_exemption": true,
+  "existing_backend_credentials": [
+    {
+      "name": "DATABASE_URL",
+      "classification": "PRESENT_AND_VALIDATED",
+      "validation_scope": "accepted hash-bound Stage2/4 snapshot; no fresh agent key or root inspection",
+      "new_value_generated": false
+    },
+    {
+      "name": "API_USAGE_DATABASE_URL",
+      "classification": "PRESENT_AND_VALIDATED",
+      "validation_scope": "accepted hash-bound Stage2/4 snapshot; no fresh agent key or root inspection",
+      "new_value_generated": false
+    },
+    {
+      "name": "API_USAGE_PEER_HMAC_KEY",
+      "classification": "PRESENT_AND_VALIDATED",
+      "validation_scope": "accepted hash-bound Stage2/4 snapshot; no fresh agent key or root inspection",
+      "new_value_generated": false
+    },
+    {
+      "name": "PILOT_SESSION_SIGNING_KEY",
+      "classification": "PRESENT_AND_VALIDATED",
+      "validation_scope": "accepted hash-bound Stage2/4 snapshot; no fresh agent key or root inspection",
+      "new_value_generated": false
+    },
+    {
+      "name": "VALUATION_DATABASE_URL",
+      "classification": "PRESENT_AND_VALIDATED",
+      "validation_scope": "accepted hash-bound Stage2/4 snapshot; no fresh agent key or root inspection",
+      "new_value_generated": false
+    },
+    {
+      "name": "PROFESSOR_USER_DATABASE_URL",
+      "classification": "PRESENT_AND_VALIDATED",
+      "validation_scope": "accepted hash-bound Stage2/4 snapshot; no fresh agent key or root inspection",
+      "new_value_generated": false
+    }
+  ],
+  "supabase_server_verification": {
+    "classification": "PRESENT_AND_VALIDATED",
+    "names": [
+      "SUPABASE_URL",
+      "SUPABASE_JWT_ISSUER",
+      "SUPABASE_JWT_AUDIENCE"
+    ],
+    "validation_scope": "accepted hash-bound Stage2/4 snapshot; no fresh agent key or root inspection",
+    "signing_or_service_role_secret_required": false
+  },
+  "database_admin_material": [
+    {
+      "file": "app_admin_password",
+      "classification": "PRESENT_AND_VALIDATED",
+      "validation_scope": "accepted hash-bound Stage2/4 snapshot; no fresh agent key or root inspection",
+      "mounted_in_api": false
+    },
+    {
+      "file": "usage_admin_password",
+      "classification": "PRESENT_AND_VALIDATED",
+      "validation_scope": "accepted hash-bound Stage2/4 snapshot; no fresh agent key or root inspection",
+      "mounted_in_api": false
+    }
+  ],
+  "browser_public_configuration": [
+    {
+      "name": "NEXT_PUBLIC_SUPABASE_URL",
+      "classification": "BROWSER_PUBLIC_ONLY",
+      "server_import_requested": false
+    },
+    {
+      "name": "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "classification": "BROWSER_PUBLIC_ONLY",
+      "server_import_requested": false
+    },
+    {
+      "name": "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY",
+      "classification": "BROWSER_PUBLIC_ONLY",
+      "server_import_requested": false
+    },
+    {
+      "name": "NEXT_PUBLIC_API_BASE_URL",
+      "classification": "BROWSER_PUBLIC_ONLY",
+      "server_import_requested": false
+    }
+  ],
+  "legacy_cloud_aliases": [
+    {
+      "name": "GCP_SERVICE_ACCOUNT_KEY",
+      "classification": "LEGACY_CLOUD_ONLY",
+      "actual_live_presence": "UNKNOWN",
+      "retirement_approved": false
+    },
+    {
+      "name": "GCP_SA_KEY",
+      "classification": "LEGACY_CLOUD_ONLY",
+      "actual_live_presence": "UNKNOWN",
+      "retirement_approved": false
+    },
+    {
+      "name": "GCP_WORKLOAD_IDENTITY_PROVIDER",
+      "classification": "LEGACY_CLOUD_ONLY",
+      "actual_live_presence": "UNKNOWN",
+      "retirement_approved": false
+    },
+    {
+      "name": "GCP_SERVICE_ACCOUNT",
+      "classification": "LEGACY_CLOUD_ONLY",
+      "actual_live_presence": "UNKNOWN",
+      "retirement_approved": false
+    },
+    {
+      "name": "GOOGLE_SERVICE_ACCOUNT_JSON",
+      "classification": "LEGACY_CLOUD_ONLY",
+      "actual_live_presence": "UNKNOWN",
+      "retirement_approved": false
+    },
+    {
+      "name": "RENDER_API_KEY",
+      "classification": "LEGACY_CLOUD_ONLY",
+      "actual_live_presence": "UNKNOWN",
+      "retirement_approved": false
+    },
+    {
+      "name": "RENDER_GIT_COMMIT",
+      "classification": "LEGACY_CLOUD_ONLY",
+      "actual_live_presence": "UNKNOWN",
+      "retirement_approved": false
+    },
+    {
+      "name": "RENDER_API_BASE_URL",
+      "classification": "LEGACY_CLOUD_ONLY",
+      "actual_live_presence": "UNKNOWN",
+      "retirement_approved": false
+    }
+  ],
+  "classification_meanings": {
+    "PRESENT_AND_VALIDATED": "validated within recorded scope; provider functional tests separate",
+    "PRESENT_NOT_VALIDATED": "file observed but required acceptance incomplete",
+    "MISSING": "required migration acceptance missing, consult filesystem_presence; UNKNOWN is not proven file absence",
+    "BROWSER_PUBLIC_ONLY": "frontend/browser configuration, no server credential copy",
+    "LEGACY_CLOUD_ONLY": "legacy deployment/identity references, no automatic runtime import or retirement"
+  },
+  "last_operator_attempt": "provider-migration-failure-receipt.json",
+  "guard_repair": "provider-guard-refusal-diagnosis.json"
+}

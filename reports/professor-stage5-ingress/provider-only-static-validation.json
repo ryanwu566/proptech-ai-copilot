@@ -1,0 +1,20 @@
+{
+  "schema": "professor-stage5-provider-only-static-v1",
+  "status": "PASS",
+  "json_csv_scope_and_counts": "PASS",
+  "manual_history_completeness_scope": "visible workflow_dispatch only, not current activation/credential presence",
+  "unknown_remote_metadata_preserved": true,
+  "all_retirement_rows_blocked": true,
+  "source_ast": "PASS",
+  "literal_scan": "PASS_KNOWN_FORMATS",
+  "installed_secret_values_read": false,
+  "only_provider_docs_evidence_changed": true,
+  "main_next_env_preserved": true,
+  "tests": {
+    "tests": 50,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "full_suite_run": false
+}

@@ -1,0 +1,26 @@
+# PREPARED ONLY; append after accepted Stage 3 overrides. No activation here.
+# Container database/volume/network and all data bind mounts inherit unchanged.
+# Requires authority_reviewed=true after explicit existing-account review.
+services:
+  api:
+    image: "${PROFESSOR_STAGE4A_API_IMAGE:?reviewed clean Stage 4A image required}"
+    pull_policy: never
+    entrypoint: [python, scripts/ops/professor_stage4a_entrypoint.py]
+    command: [api]
+    environment:
+      PROFESSOR_USERDB_ENABLED: "true"
+      SUPABASE_JWT_ISSUER: https://flyhsjcynreuofbcdxod.supabase.co/auth/v1
+      SUPABASE_JWT_AUDIENCE: authenticated
+    secrets: !override
+      - app_database_url
+      - usage_database_url
+      - valuation_database_url
+      - usage_peer_hmac_key
+      - pilot_session_signing_key
+      - source: professor_user_database_url
+        target: /run/professor-userdb/professor_user_database_url
+    healthcheck:
+      test: [CMD, python, scripts/ops/professor_stage4a_entrypoint.py, health]
+secrets:
+  professor_user_database_url:
+    file: /run/proptech-selfhost/secrets/professor_user_database_url

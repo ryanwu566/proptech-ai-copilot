@@ -1,0 +1,37 @@
+{
+  "schema": "professor-stage4a-controlled-activation-security-review-v1",
+  "checked_at": "2026-10-30T03:58:21.405910+00:00",
+  "status": "PASS",
+  "reviewer": "independent stage4a_security_review",
+  "scope": [
+    "API-only Compose delta",
+    "source/image export and scanner",
+    "secret metadata/consistency/drift",
+    "authority SQL preconditions",
+    "Supabase identity preservation",
+    "cross-user ownership",
+    "same-filesystem repeatable rollback",
+    "asynchronous proxy recovery",
+    "bounded rollback phases",
+    "truthful partial receipts"
+  ],
+  "remaining_critical_or_important_findings": 0,
+  "findings_repaired": [
+    "Exact Stage 4A template and native catalog wrapper",
+    "Empty Docker config and actual Docker/containerd storage guards",
+    "Private STORE/STAGED consistency and same-size content drift rejection",
+    "Rollback inactive override within /etc, supports repeat recovery",
+    "Durable approval state reported immediately",
+    "Nginx cached upstream refreshed without container restart",
+    "Bounded Docker-health and loopback readiness retries after reload",
+    "Outer rollback budget covers all capped phases and overhead",
+    "Manual rollback environment isolation and absolute env bootstrap",
+    "Explicit failure phases, uncertain recreation outcomes and restored-profile evidence"
+  ],
+  "reviewer_performed_tests_or_live_calls": false,
+  "agent_executed_privileged_actions": false,
+  "live_candidate_review": "mandatory operator pre-ACTIVATE gate, not yet performed",
+  "final_verdict": "PASS",
+  "source_sha256": "e56074f506ee98cfbbe754266d724dc18fa5d5ed405f650afeefcf290a9cd186",
+  "minor_bootstrap_hardening": "Applied absolute /usr/bin/env for hermetic rollback body."
+}

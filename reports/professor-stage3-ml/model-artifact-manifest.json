@@ -1,0 +1,30 @@
+{
+  "schema": "stage3-local-model-artifact-manifest-v1",
+  "status": "PASS",
+  "artifact_path": "/home/andy/proptech-model-artifacts/plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7",
+  "model_version": "plvr-gross-v1-bccf2ec1bc-dcc6587c76b3-6493b5f7",
+  "model_sha256": "dcc6587c76b332e8f5ac800f8585972a723998edd4a84430fca5521f8d3fc95e",
+  "manifest_sha256": "54eba6a04069b0f8d569c2fe62bbe1ca70771b5594cb220e908e9f7e3524fac4",
+  "files": {
+    "contract.json": "5531a9e2cf1a1c9adc04cca8c415172d878de6e0b83efea7a488ac5688696858",
+    "metadata.json": "2d7f526512f51a8707285fdafb5c57a5ff48d7cf6359b7d0342f5966ade7fa4c",
+    "model.txt": "dcc6587c76b332e8f5ac800f8585972a723998edd4a84430fca5521f8d3fc95e",
+    "preprocessing.json": "9c7e4a336b489a6d7f1fd271c6041a11b06dd1eaf14bec98c3de956a5504ddee"
+  },
+  "generated_at": "2026-10-29T14:48:18.717429+00:00",
+  "libraries": {
+    "fastapi": "0.162.0",
+    "lightgbm": "4.6.0",
+    "numpy": "2.5.4",
+    "pydantic": "2.14.1",
+    "python": "3.12.16",
+    "scikit-learn": "1.7.2",
+    "scipy": "1.18.1"
+  },
+  "dataset_fingerprint": "bccf2ec1bc19110b9f55e35c3eaec284c2ad57a97318acea7381c5be5002ccee",
+  "feature_contract_version": "plvr-gross-transfer-features-v1",
+  "fitting_checkpoint_identity": "6493b5f70de0cacfe578018f0f189c90d97f609dd4a36e6525692321e23116f3",
+  "size_bytes": 3724642,
+  "model_format": "native LightGBM text + JSON; no pickle",
+  "read_only_immutable": true
+}

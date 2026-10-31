@@ -1,0 +1,124 @@
+{
+  "schema": "professor-stage4a-successful-activation-manifest-v1",
+  "checked_at": "2026-10-30T04:20:16.316118+00:00",
+  "status": "PASS",
+  "operator_exit_code": 0,
+  "private_evidence_root": "/var/backups/proptech-selfhost/stage4a-activation/20261030T040052Z-8cd21b4e0da2",
+  "sanitized_source": "/tmp/professor-stage4a-activation-dpf5uno4",
+  "all_artifacts_inspected": true,
+  "artifact_count": 22,
+  "artifacts": [
+    {
+      "file": "acceptance.json",
+      "bytes": 1413,
+      "sha256": "bd8421cce9618e555610914144c1895911f1c287289883ae552d4e3647232a31"
+    },
+    {
+      "file": "api-after.json",
+      "bytes": 873,
+      "sha256": "9f19289757d261ce6c166f810f8f6d7332e24144bfba1fd3ba9d61e6cd215397"
+    },
+    {
+      "file": "api-before.json",
+      "bytes": 873,
+      "sha256": "9f19289757d261ce6c166f810f8f6d7332e24144bfba1fd3ba9d61e6cd215397"
+    },
+    {
+      "file": "approval-review.json",
+      "bytes": 687,
+      "sha256": "15e7a28eba5998498ce94621c17abfb6b026ac3fb816e5d7024ad5899ba074c1"
+    },
+    {
+      "file": "authority-approved.json",
+      "bytes": 178,
+      "sha256": "2921d3a78181805f3e65b9716bcd74f26c83ef1e7ec7ad2237f6499c4b675361"
+    },
+    {
+      "file": "build.json",
+      "bytes": 463,
+      "sha256": "059495d700f6edb4c0e989231bebf1c3f2d7afea0fd8d3d5cfe2568f8df2d749"
+    },
+    {
+      "file": "candidate-approved.json",
+      "bytes": 136,
+      "sha256": "570fc939f07b424d87d5bc9c09143691f5935112c2571be9c9ce23360b66d9a9"
+    },
+    {
+      "file": "candidate-artifacts.json",
+      "bytes": 1599,
+      "sha256": "48345b12a2bab4c84061c9ca87982390c119232884937466025a3f1ae03a2028"
+    },
+    {
+      "file": "candidate-pending-approval.json",
+      "bytes": 137,
+      "sha256": "703416806945ed6bdf2b182d46fca11f01a2c270d8ee49ebdb2e953a9d2f0308"
+    },
+    {
+      "file": "change-plan.json",
+      "bytes": 2210,
+      "sha256": "ef7fa0fff14b3134a220016b11b3a0c80067c51eee7f8136c643d7372209de51"
+    },
+    {
+      "file": "containers-after.json",
+      "bytes": 5830,
+      "sha256": "1cf11b2834bba18db8b327919f9e8798e03a89c03eddb0a71be4ab8ae5f397dd"
+    },
+    {
+      "file": "containers-before.json",
+      "bytes": 5613,
+      "sha256": "26ee83bf16db4dff374df9d42aa75cafb24c2c952bd4f7e41489c25040089482"
+    },
+    {
+      "file": "database-after.json",
+      "bytes": 676,
+      "sha256": "f05c343a77be25efddf3d25fb99dc6fdf19d1e24a9a93bf3f9116d0fcba0193e"
+    },
+    {
+      "file": "database-before.json",
+      "bytes": 676,
+      "sha256": "f05c343a77be25efddf3d25fb99dc6fdf19d1e24a9a93bf3f9116d0fcba0193e"
+    },
+    {
+      "file": "image-scan.json",
+      "bytes": 553,
+      "sha256": "b50d01497caee267f640a66cc8ffa2135c2fd5ba456d8ee7c71392827ded852b"
+    },
+    {
+      "file": "proxy-recovery.json",
+      "bytes": 78,
+      "sha256": "1b337894dd6db84a6b57e61791805dbf76204a7e59ab1c95d11c4979c2aa3540"
+    },
+    {
+      "file": "schema-before.json",
+      "bytes": 326,
+      "sha256": "067f9e0e70fb91f48eaaf43e83249006c56f2d85b4b92feed5bb319587db7d77"
+    },
+    {
+      "file": "secret-host-metadata.json",
+      "bytes": 854,
+      "sha256": "f751e383254c0054e55ac648fbf4c17bcb6c93c40f3564f24450bbe007bb2067"
+    },
+    {
+      "file": "secret-mounts-after.json",
+      "bytes": 854,
+      "sha256": "f751e383254c0054e55ac648fbf4c17bcb6c93c40f3564f24450bbe007bb2067"
+    },
+    {
+      "file": "stage3-after.json",
+      "bytes": 5202,
+      "sha256": "67ed820b210d77ea363de58dfe37d4f24c90ac4f85aaa6293e37adda2ed2a610"
+    },
+    {
+      "file": "stage3-before.json",
+      "bytes": 5202,
+      "sha256": "67ed820b210d77ea363de58dfe37d4f24c90ac4f85aaa6293e37adda2ed2a610"
+    },
+    {
+      "file": "user-api-after.json",
+      "bytes": 107,
+      "sha256": "e07a2b22e2297662f923caf671d466b1482a625c98ea5654d837ecdf19f6a7b5"
+    }
+  ],
+  "root_only_files_not_reopened": true,
+  "no_provisioning_activation_or_old_inspection_rerun": true
+}

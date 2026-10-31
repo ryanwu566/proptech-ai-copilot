@@ -73,6 +73,7 @@ class GsmmaGeologicalSensitivityProvider:
                 artifact_sha256=result.get("artifact_sha256"),
                 source_vintage=result.get("source_vintage"),
             )
+            source["storage_backend"] = result.get("storage_backend", "r2")
             if result.get("matched"):
                 matches = result.get("matches")
                 if not isinstance(matches, list) or not matches:

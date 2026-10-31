@@ -1,0 +1,308 @@
+{
+  "schema": "professor-stage5-repository-history-metadata-v1",
+  "checked_at": "2026-10-30T08:10:40.608548+00:00",
+  "source_base_head": "8164242bc99fbe4d4a4298554c53de652becbc44",
+  "values_included": false,
+  "source_manifest": [
+    {
+      "path": "docs/satellite-reference-evidence-v1.md",
+      "bytes": 4922,
+      "sha256": "c0414260d8bcd275b8af3dd5dbc5c0a87c7c8281eec4b1bb300bf7cd3baa40d5",
+      "git_blob": "5a362082e0beaa34a510bee0f2936d9ff55e7267"
+    },
+    {
+      "path": "Dockerfile.cloudrun",
+      "bytes": 380,
+      "sha256": "3dbd9dac6d46af3c88e21d0ae015848ee6c0c2573771c1eceb13dcdc0092ba96",
+      "git_blob": "eb0c9cd4286373e646df357dc4f2a86caf3f957d"
+    },
+    {
+      "path": "render.yaml",
+      "bytes": 2172,
+      "sha256": "8ee8f99e636e58b6990a5faeb829c9c1d1ddd67557d8a27abbc042a7c02106be",
+      "git_blob": "df62f252356ad575ade04578c7d4b06bf594a2a7"
+    },
+    {
+      "path": ".github/workflows/hosted-production-smoke.yml",
+      "bytes": 1680,
+      "sha256": "23e05daf65a55720c434ed06ebcd74fa06c98bddb7bba978179ff9acbed555bf",
+      "git_blob": "dae8869aca08fecedc04054ccb755035c3866726"
+    },
+    {
+      "path": ".github/workflows/authenticated-identity-smoke.yml",
+      "bytes": 2574,
+      "sha256": "3bb2993bd29679d2e7c3848cda802e3e580ed69a2cec643824cc5515c91cc429",
+      "git_blob": "7e6a12f62b723ac5ca34dbb0036384ef1bdc1a69"
+    },
+    {
+      "path": ".github/workflows/import-official-market-data.yml",
+      "bytes": 3896,
+      "sha256": "83b33eaebf276b06e3af2e3d30f94cd2df36454ca1b520513c34bb6eeaedf8e2",
+      "git_blob": "e33059408173854e8cdebdef76d58e0734b085ce"
+    },
+    {
+      "path": ".github/workflows/refresh-commute-snapshot.yml",
+      "bytes": 1387,
+      "sha256": "752c62ae008badb56276802aaa0de84027dbdde2fddb2f44fbabe7342f7f28e4",
+      "git_blob": "1716ac8b80dc304b8ea445128d960e5ff65ac385"
+    },
+    {
+      "path": ".github/workflows/refresh-market-read-model.yml",
+      "bytes": 2586,
+      "sha256": "de48dcbe6eb8ab13820c326bd8cccef1a1c33d10fafb750b4b9fe4843b0a648b",
+      "git_blob": "b088e631a884346ae607f38ed36f60052b0f8277"
+    },
+    {
+      "path": ".github/workflows/reconcile-market-coverage.yml",
+      "bytes": 13553,
+      "sha256": "b98127b090dc63624dcea5ae23f9ded9444ae82aeb6054f928988b0d4f3b7027",
+      "git_blob": "c8a9acee14d959dd872c8ad1b832a80070910624"
+    },
+    {
+      "path": "docs/operations/production-identity-provider-closure-v1-evidence.json",
+      "bytes": 63574,
+      "sha256": "8682fc7da37c002fe6c24878a3dba68698abd90fce7c389d2f16fc5f8d2d09ce",
+      "git_blob": "a8536d2076a599e7308ea4e83cd6a3dc8a9d1e81"
+    },
+    {
+      "path": "docs/operations/hosted-market-live-observation-v1.json",
+      "bytes": 1182,
+      "sha256": "30318297b5b080a93501d592dc91a3dec29c32c1e3414d8c5c2379fddfc4819b",
+      "git_blob": "87f02ab1c8781309f1e60792d9c944d4067b9eb6"
+    }
+  ],
+  "earth_engine_declared_identity": {
+    "evidence_class": "VERIFIED_REPO",
+    "service_account_name": "proptech-render-earth-engine@project-3bd34c3e-daee-493f-ad6.iam.gserviceaccount.com",
+    "project_identifier": "project-3bd34c3e-daee-493f-ad6",
+    "adc_source_declared": "Cloud Run attached service identity / metadata ADC",
+    "google_application_credentials_declared": "not set for documented Cloud Run runtime",
+    "introduced_commit": "cbaa297ce034f74eae94915114afaa65c68c8673",
+    "introduced_commit_date": "2026-09-21",
+    "current_attachment_or_iam_proven": false
+  },
+  "render_blueprint": {
+    "evidence_class": "VERIFIED_REPO",
+    "service_name": "proptech-ai-copilot-api",
+    "declared_type": "web",
+    "native_cron_or_worker_declared": false,
+    "environment_names": [
+      "ANTI_ABUSE_ENFORCEMENT_MODE",
+      "API_ALLOWED_HOSTS",
+      "API_CONTRACT_VERSION",
+      "APP_ENV",
+      "APP_RUNTIME",
+      "BACKEND_PUBLIC_URL",
+      "BUILD_TIMESTAMP",
+      "COMMUTE_REFRESH_TOKEN",
+      "COMPACT_GREEN_DATABASE_URL",
+      "CORS_ALLOWED_ORIGINS",
+      "DATABASE_URL",
+      "EARTH_ENGINE_PROJECT",
+      "EARTH_ENGINE_SATELLITE_REFERENCE_V1",
+      "GOOGLE_MAPS_API_KEY",
+      "MAINTENANCE_MODE",
+      "NLSC_GATEWAY_BASE_URL",
+      "NLSC_GATEWAY_CLIENT_TOKEN",
+      "PILOT_ADMIN_TOKEN",
+      "PILOT_EVIDENCE_DATABASE_URL",
+      "PILOT_REVIEW_TOKEN",
+      "PILOT_SESSION_SIGNING_KEY",
+      "PLVR_DATA_BACKEND",
+      "POSTGRES_SSLMODE",
+      "PUBLIC_APP_BASE_URL",
+      "RELEASE_COMMIT_SHA",
+      "RELEASE_VERSION",
+      "SCHEMA_VERSION",
+      "TAIPEI_PLANNING_READ_V1",
+      "TAIPEI_PLANNING_SOURCE_MODE",
+      "TDX_CLIENT_ID",
+      "TDX_CLIENT_SECRET",
+      "TGOS_API_KEY",
+      "TGOS_APP_ID",
+      "VALUATION_DATABASE_URL"
+    ],
+    "actual_deployed_env_or_secret_names_proven": false
+  },
+  "cloud_run_image_contract": {
+    "evidence_class": "VERIFIED_REPO",
+    "file": "Dockerfile.cloudrun",
+    "configuration_names": [
+      "BACKEND_BUILD_COMMIT",
+      "PORT"
+    ],
+    "image_digest_or_revision_proven": false
+  },
+  "historical_render_release": {
+    "evidence_class": "HISTORICAL_ONLY",
+    "observed_at": "2026-10-11T07:02:19.682813+00:00",
+    "origin": "https://proptech-ai-copilot-api.onrender.com",
+    "commit_sha": "ef1c49c55a58eb0ab63beefe0cd2ddc1f2f9717b",
+    "http_status": 200,
+    "currently_deployed_proven": false
+  },
+  "older_provider_closure_scope": {
+    "evidence_class": "HISTORICAL_ONLY",
+    "source": "docs/operations/production-identity-provider-closure-v1-evidence.json",
+    "date": "2026-10-09",
+    "scope": "local_checkout_not_production",
+    "network_requests": 0,
+    "actual_deployed_credential_presence_proven": false,
+    "limitation": "local configuration inventory, not a deployment/control-plane or live provider proof"
+  },
+  "workflow_configuration": [
+    {
+      "path": ".github/workflows/hosted-production-smoke.yml",
+      "evidence_class": "VERIFIED_REPO",
+      "secret_reference_names": [
+        "BACKEND_PRODUCTION_URL",
+        "EXPECTED_RELEASE_VERSION",
+        "FRONTEND_PRODUCTION_URL",
+        "PRODUCTION_SMOKE_TOKEN"
+      ],
+      "variable_reference_names": [
+        "EXPECTED_BACKEND_COMMIT_SHA",
+        "EXPECTED_FRONTEND_COMMIT_SHA"
+      ],
+      "environment_names": [
+        "BACKEND_PRODUCTION_URL",
+        "EXPECTED_BACKEND_COMMIT_SHA",
+        "EXPECTED_FRONTEND_COMMIT_SHA",
+        "EXPECTED_RELEASE_VERSION",
+        "FRONTEND_PRODUCTION_URL",
+        "PRODUCTION_SMOKE_TOKEN"
+      ],
+      "environment_scopes": [],
+      "cron_utc": [
+        "17 */6 * * *"
+      ],
+      "manual_dispatch_declared": true,
+      "actual_secret_names_and_values": "UNKNOWN",
+      "workflow_modified_or_executed": false,
+      "latest_observed_run_source_blob": "dae8869aca08fecedc04054ccb755035c3866726",
+      "latest_observed_run_source_matches_local": true
+    },
+    {
+      "path": ".github/workflows/authenticated-identity-smoke.yml",
+      "evidence_class": "VERIFIED_REPO",
+      "secret_reference_names": [
+        "SMOKE_API_BASE_URL",
+        "SMOKE_PROPERTY_ENTITY_ID",
+        "SMOKE_TEST_WORKSPACE_ID",
+        "SMOKE_USER_BEARER_TOKEN",
+        "SMOKE_WORKSPACE_ID"
+      ],
+      "variable_reference_names": [],
+      "environment_names": [
+        "SMOKE_API_BASE_URL",
+        "SMOKE_PROPERTY_ENTITY_ID",
+        "SMOKE_TEST_WORKSPACE_ID",
+        "SMOKE_USER_BEARER_TOKEN",
+        "SMOKE_WORKSPACE_ID",
+        "SMOKE_WRITE_MODE"
+      ],
+      "environment_scopes": [
+        "production-identity-smoke-read",
+        "production-identity-smoke-write"
+      ],
+      "cron_utc": [
+        "23 4 * * *"
+      ],
+      "manual_dispatch_declared": true,
+      "actual_secret_names_and_values": "UNKNOWN",
+      "workflow_modified_or_executed": false,
+      "latest_observed_run_source_blob": "7e6a12f62b723ac5ca34dbb0036384ef1bdc1a69",
+      "latest_observed_run_source_matches_local": true
+    },
+    {
+      "path": ".github/workflows/import-official-market-data.yml",
+      "evidence_class": "VERIFIED_REPO",
+      "secret_reference_names": [
+        "PLVR_UPDATE_DATABASE_URL"
+      ],
+      "variable_reference_names": [
+        "PLVR_UPDATE_ENVIRONMENT"
+      ],
+      "environment_names": [
+        "CITY",
+        "EXPECTED_SHA256",
+        "MODE",
+        "PLVR_UPDATE_DATABASE_URL",
+        "PLVR_UPDATE_ENVIRONMENT",
+        "RELEASE",
+        "SINCE",
+        "UNTIL"
+      ],
+      "environment_scopes": [
+        "production-market-import"
+      ],
+      "cron_utc": [
+        "17 4 1,15 * *"
+      ],
+      "manual_dispatch_declared": true,
+      "actual_secret_names_and_values": "UNKNOWN",
+      "workflow_modified_or_executed": false,
+      "scheduled_behavior": "READINESS_NOTICE_ONLY_NO_DOWNLOAD_OR_DB_IMPORT",
+      "manual_behavior": "explicit checksum/release/scope and mode gate; dedicated production-market-import principal if approved",
+      "production_database_access_proven": false,
+      "latest_observed_run_source_blob": "e33059408173854e8cdebdef76d58e0734b085ce",
+      "latest_observed_run_source_matches_local": true
+    },
+    {
+      "path": ".github/workflows/refresh-commute-snapshot.yml",
+      "evidence_class": "VERIFIED_REPO",
+      "secret_reference_names": [
+        "COMMUTE_REFRESH_TOKEN",
+        "RENDER_API_BASE_URL"
+      ],
+      "variable_reference_names": [],
+      "environment_names": [
+        "COMMUTE_REFRESH_TOKEN",
+        "RENDER_API_BASE_URL"
+      ],
+      "environment_scopes": [],
+      "cron_utc": [],
+      "manual_dispatch_declared": true,
+      "actual_secret_names_and_values": "UNKNOWN",
+      "workflow_modified_or_executed": false
+    },
+    {
+      "path": ".github/workflows/refresh-market-read-model.yml",
+      "evidence_class": "VERIFIED_REPO",
+      "secret_reference_names": [
+        "MARKET_READ_MODEL_REFRESH_TOKEN",
+        "RENDER_API_BASE_URL"
+      ],
+      "variable_reference_names": [],
+      "environment_names": [
+        "MARKET_READ_MODEL_REFRESH_TOKEN",
+        "RENDER_API_BASE_URL"
+      ],
+      "environment_scopes": [],
+      "cron_utc": [],
+      "manual_dispatch_declared": true,
+      "actual_secret_names_and_values": "UNKNOWN",
+      "workflow_modified_or_executed": false
+    },
+    {
+      "path": ".github/workflows/reconcile-market-coverage.yml",
+      "evidence_class": "VERIFIED_REPO",
+      "secret_reference_names": [
+        "MARKET_READ_MODEL_REFRESH_TOKEN",
+        "RENDER_API_BASE_URL"
+      ],
+      "variable_reference_names": [],
+      "environment_names": [
+        "MARKET_READ_MODEL_REFRESH_TOKEN",
+        "RENDER_API_BASE_URL"
+      ],
+      "environment_scopes": [],
+      "cron_utc": [],
+      "manual_dispatch_declared": true,
+      "actual_secret_names_and_values": "UNKNOWN",
+      "workflow_modified_or_executed": false
+    }
+  ],
+  "credential_values_or_raw_deployment_exports_read": false,
+  "cloud_or_runtime_mutations": false
+}
