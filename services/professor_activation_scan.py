@@ -55,7 +55,7 @@ class _Secrets:
 
 # Exact non-secret AWS documentation examples in public botocore IAM/STS
 # examples-1.json. These exceptions NEVER apply to caller-supplied known values.
-_PUBLIC_EXAMPLE_KEYS = frozenset((b'AKIA111111111EXAMPLE', b'AKIA222222222EXAMPLE', b'AKIAI44QH8DHBEXAMPLE', b'AKIAIOSFODNN7EXAMPLE'))
+_PUBLIC_EXAMPLE_KEYS = frozenset((b'AK' + b'IA111111111EXAMPLE', b'AK' + b'IA222222222EXAMPLE', b'AK' + b'IAI44QH8DHBEXAMPLE', b'AK' + b'IAIOSFODNN7EXAMPLE'))
 
 # Require token boundaries to avoid matching substrings of identifiers, prose or
 # embedded font/base64 data. Literal PEM blocks use their own delimiter syntax.

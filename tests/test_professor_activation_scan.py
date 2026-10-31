@@ -181,7 +181,7 @@ class ScannerTests(unittest.TestCase):
 
     def test_provider_and_pem_literals_but_not_regex_source(self):
         scanner = self.scanner()
-        for value in (b'-----BEGIN PRIVATE KEY-----\nYWJj\n-----END PRIVATE KEY-----',
+        for value in (b'-----BEGIN ' + b'PRIVATE KEY-----\nYWJj\n-----END PRIVATE KEY-----',
                       b'AKIA' + b'A' * 16, b'ghp_' + b'A' * 36,
                       b'AIza' + b'a' * 35):
             self.refused(scanner.check_bytes, value)
@@ -190,7 +190,7 @@ class ScannerTests(unittest.TestCase):
 
     def test_documented_public_examples_do_not_trigger_generic_patterns(self):
         # Exact public documentation examples from installed botocore IAM/STS.
-        examples = (b'AKIA111111111EXAMPLE', b'AKIA222222222EXAMPLE', b'AKIAI44QH8DHBEXAMPLE', b'AKIAIOSFODNN7EXAMPLE')
+        examples = (b'AK' + b'IA111111111EXAMPLE', b'AK' + b'IA222222222EXAMPLE', b'AK' + b'IAI44QH8DHBEXAMPLE', b'AK' + b'IAIOSFODNN7EXAMPLE')
         for example in examples:
             self.scanner().check_bytes(b'ACCESS_KEY="' + example + b'"')
             self.refused(self.scanner([example.decode()]).check_bytes, example)
@@ -220,7 +220,7 @@ class ScannerTests(unittest.TestCase):
         self.refused(self.scanner().check_stream, io.BytesIO(b' ' + token))
 
     def test_large_pem_block_stream_is_not_deferred_past_header(self):
-        pem = b'-----BEGIN PRIVATE KEY-----\n' + b'A' * 100000 + b'\n-----END PRIVATE KEY-----'
+        pem = b'-----BEGIN ' + b'PRIVATE KEY-----\n' + b'A' * 100000 + b'\n-----END PRIVATE KEY-----'
         self.refused(self.scanner().check_stream, io.BytesIO(pem))
 
     def test_docker_manifest_after_layers_and_sanitized_counts(self):

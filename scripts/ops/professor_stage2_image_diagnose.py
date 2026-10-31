@@ -34,7 +34,7 @@ RECEIPT=Path('/tmp/professor-stage2-activation-986412c2c9a24bf4b4508bc1e054fc79'
 IMAGE='proptech-professor-api:stage2-'+RUN_ID.lower()
 EXPECTED_IMAGE_ID='sha256:c06a1e4123743041cb31c4c12bdd87e1e0165c6303baefd3d3c6103a62445615'
 SCANNER_PATH=Path(scan_module.__file__).resolve()
-SCANNER_SHA256='4c1156387bde3cc7c20d8b5629019e69bd445f46b002057ec5dddda24ae7ce95'
+SCANNER_SHA256='bb8e65842e898d3d5de1189a08a0b9e5312024bb8134d8de894db52e78c1c2b8'
 
 
 class DiagnosticRefused(Exception):
